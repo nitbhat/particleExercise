@@ -1,6 +1,9 @@
 void Cell::populateCell(int initialElements) {
-  //create random particles and add then to the particles vector
 
+  //create random particles and add then to the particles vector
+  addParticlesOfColor(initialElements,'b');
+
+/*
   //along the diagonal
   if(thisIndex.x==thisIndex.y){
     addParticlesOfColor(initialElements,'b');
@@ -20,12 +23,14 @@ void Cell::populateCell(int initialElements) {
   //condition for adding red particles
   if(thisIndex.x>=redBoxMin && thisIndex.x<redBoxMin+(numCellsPerDim/4) && thisIndex.y>=redBoxMin && thisIndex.y<redBoxMin +(numCellsPerDim/4))
     addParticlesOfColor(2*initialElements,'r');
+*/
 }
 
 void Cell::addParticlesOfColor(int num, char c){
   for(int i=1;i<=num;i++){
-    double randomXPosition= startX + drand48()*(boxMax/numCellsPerDim);
-    double randomYPosition= startY + drand48()*(boxMax/numCellsPerDim);
+    double randomXPosition= startX + drand48()*(cellDim);
+    double randomYPosition= startY + drand48()*(cellDim);
+    //CmiPrintf("[%d][%d][%d]   [%d][%d] addParticlesOfColor x=%lf, y=%lf\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), thisIndex.x, thisIndex.y, randomXPosition, randomYPosition);
     Particle p(randomXPosition, randomYPosition, c);
     particles.push_back(p);
   }

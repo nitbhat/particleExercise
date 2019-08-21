@@ -23,6 +23,9 @@ CkReduction::reducerType totalAndMaxType;
 class Main: public CBase_Main {
 
   CProxy_Cell cellGrid;
+
+  double startTime, endTime, totalTime;
+
   public:
   Main(CkArgMsg* m) {
     if(m->argc < 3) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array>");
@@ -38,9 +41,14 @@ class Main: public CBase_Main {
 
     cellDim = boxMax/numCellsPerDim;
 
+    CmiPrintf("[%d][%d][%d] particlesPerCell = %d\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), particlesPerCell);
+    CmiPrintf("[%d][%d][%d] numCellsPerDim = %d\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), numCellsPerDim);
+
     //declare a 2D chare array with dimensions numCellsPerDim*numCellsPerDim
     CkArrayOptions opts(numCellsPerDim, numCellsPerDim);
     cellGrid = CProxy_Cell::ckNew(opts);
+
+    startTime = CkWallTimer();
 
     //start the run for all the chares
     cellGrid.run();
@@ -49,9 +57,14 @@ class Main: public CBase_Main {
   //function to receive the reduction result
   void receiveReductionData(CkReductionMsg *data){
     int *output = (int *) data->getData();
+    //CkAssert(output[2] == particlesPerCell*numCellsPerDim*numCellsPerDim);
     printTotal(output[0], output[1], output[2]);
-    if(output[2] == ITERATION)
+    if(output[2] == ITERATION) {
+      endTime = CkWallTimer();
+      totalTime = (endTime - startTime);
+      CkPrintf("Simulation Complete, total time taken is %lf seconds\n", totalTime);
       CkExit();
+    }
   }
 
   // and max counts and exiting when the iterations are done
@@ -77,8 +90,10 @@ class Cell: public CBase_Cell {
       __sdag_init();
       iteration = 0;
       usesAtSync = true;
-      startX = (double) thisIndex.x*(boxMax/numCellsPerDim);
-      startY = (double) thisIndex.y*(boxMax/numCellsPerDim);
+      startX = (double) thisIndex.x*(cellDim);
+      startY = (double) thisIndex.y*(cellDim);
+
+      srand48(thisIndex.x + (numCellsPerDim)*thisIndex.y);
       populateCell(particlesPerCell); //creates random particles within the cell
     }
     Cell(CkMigrateMessage* m) {}

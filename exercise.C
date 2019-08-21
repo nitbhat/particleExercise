@@ -7,6 +7,7 @@ void Cell::updateParticles(int iter) {
 
   // Iterate over the particles and call 'perturb'
   int swapIndex = particles.size()-1;
+
   for(int i=particles.size()-1;i>=0; i--){
 
     //change the position of the particle
@@ -20,44 +21,44 @@ void Cell::updateParticles(int iter) {
     }
 
     //condition for shifting to top cell
-    else if(particles[i].x>startX && particles[i].x<startX + (boxMax/numCellsPerDim) && particles[i].y<startY){
+    else if(particles[i].x>startX && particles[i].x<startX + (cellDim) && particles[i].y<startY){
       top.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to top-right cell
-    else if(particles[i].x>startX+(boxMax/numCellsPerDim) && particles[i].y<startY){
+    else if(particles[i].x>startX+(cellDim) && particles[i].y<startY){
       topRight.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to left cell
-    else if(particles[i].x < startX && particles[i].y>startY && particles[i].y<startY+ (boxMax/numCellsPerDim)){
+    else if(particles[i].x < startX && particles[i].y>startY && particles[i].y<startY+ (cellDim)){
       left.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to right cell
-    else if(particles[i].x>startX+(boxMax/numCellsPerDim) && particles[i].y>startY && particles[i].y<startY + (boxMax/numCellsPerDim))
+    else if(particles[i].x>startX+(cellDim) && particles[i].y>startY && particles[i].y<startY + (cellDim))
     {
       right.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to bottom-left cell
-    else if(particles[i].x<startX && particles[i].y>startY+(boxMax/numCellsPerDim)){
+    else if(particles[i].x<startX && particles[i].y>startY+(cellDim)){
       bottomLeft.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to bottom cell
-    else if(particles[i].x>startX && particles[i].x<startX+(boxMax/numCellsPerDim) && particles[i].y>startY+ (boxMax/numCellsPerDim)){
+    else if(particles[i].x>startX && particles[i].x<startX+(cellDim) && particles[i].y>startY+ (cellDim)){
       bottom.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to bottom-right cell
-    else if(particles[i].x >startX+ (boxMax/numCellsPerDim) && particles[i].y>startY+ (boxMax/numCellsPerDim)){
+    else if(particles[i].x >startX+ (cellDim) && particles[i].y>startY+ (cellDim)){
       bottomRight.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
@@ -109,5 +110,3 @@ void Cell::updateParticles(int iter) {
   if(newYIndex==numCellsPerDim) newYIndex=0;
   thisProxy(newXIndex, newYIndex).receiveUpdate(iter,bottomRight);
 }
-
-
