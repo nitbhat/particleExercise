@@ -4,9 +4,10 @@ mainmodule ParticleExercise {
   readonly CProxy_Main mainProxy;
   readonly CProxy_Cell cellProxy;
   readonly int particlesPerCell;
-  readonly int cellDimension;
+  readonly int numCellsPerDim;
   readonly double boxMax;
   readonly double boxMin;
+  readonly double cellDim;
 
   initnode void registerCalculateTotalAndMax(void);
 
