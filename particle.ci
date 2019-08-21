@@ -1,0 +1,56 @@
+mainmodule ParticleExercise {
+
+  include "Particle.h";
+  readonly CProxy_Main mainProxy;
+  readonly CProxy_Cell cellProxy;
+  readonly int particlesPerCell;
+  readonly int cellDimension;
+  readonly double boxMax;
+  readonly double boxMin;
+
+  initnode void registerCalculateTotalAndMax(void);
+
+  mainchare Main {
+    entry Main(CkArgMsg* m);
+    entry [reductiontarget] void receiveReductionData(CkReductionMsg *data);
+  };
+
+  array [2D] Cell {
+    entry Cell(void); // constructor
+
+    entry void updateNeighbor(int iter, std::vector<Particle> incoming);
+
+    // Main computation
+    entry void run() {
+      for(iteration=0; iteration<ITERATION; iteration++){
+
+          serial{
+            // Allow the particles to move around
+            updateParticles(iteration);
+          }
+
+          for(numReceived=0; numReceived<8; numReceived++){
+            when receiveUpdate[iteration] (int iter, std::vector<Particle> incoming) serial {
+              // Update the current cell with the incoming particles
+              updateNeighbor(iter, incoming);
+            }
+          }
+
+          if(iteration%10==0) serial{
+            reduceTotalAndMax();
+          }
+
+          if(iteration%LBFREQ==0){
+            serial{ AtSync(); } when ResumeFromSync() {}
+          }
+      }//end of the iteration loop
+
+      serial{
+        reduceTotalAndMax();
+      }
+    };
+
+    entry void receiveUpdate(int iter, std::vector<Particle> incoming);
+    entry void ResumeFromSync();
+  };
+};
