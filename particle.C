@@ -128,7 +128,7 @@ class Cell: public CBase_Cell {
       contribute(3*sizeof(int), data, totalAndMaxType, cbTotalAndMax);
     }
 
-    void sendParticles(int xIndex, int yIndex, int iteration,  std::vector<Particle> outgoing) {
+    void sendParticles(int xIndex, int yIndex, int iteration,  std::vector<Particle> &outgoing) {
       thisProxy(xIndex, yIndex).receiveUpdate(iteration, outgoing);
     }
 
