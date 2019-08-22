@@ -220,6 +220,6 @@ void registerCalculateTotalAndMax(void){
   totalAndMaxType=CkReduction::addReducer(calculateTotalAndMax);
 }
 
-//#include "exercise.C"
-#include "solution.C"
+#include "exercise.C"
+//#include "solution.C"
 #include "ParticleExercise.def.h"
