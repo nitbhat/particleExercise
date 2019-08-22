@@ -3,8 +3,6 @@ CHARMC=${CHARM_HOME}/bin/charmc $(OPTS)
 
 all: particle
 
-TESTOPTS = ++local
-
 OBJS = particle.o
 
 N = 1000
@@ -18,7 +16,7 @@ particle.o: particle.C cifiles
 	$(CHARMC) -c particle.C
 
 particle: $(OBJS)
-	$(CHARMC) -O3 -language charm++ -o particle $(OBJS)
+	$(CHARMC) -O3 -language charm++ -o particle $(OBJS) -module CommonLBs
 
 clean:
 	rm -f *.decl.h *.def.h conv-host *.o particle charmrun cifiles

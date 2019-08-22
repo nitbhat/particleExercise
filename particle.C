@@ -41,8 +41,7 @@ class Main: public CBase_Main {
 
     cellDim = boxMax/numCellsPerDim;
 
-    CmiPrintf("[%d][%d][%d] particlesPerCell = %d\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), particlesPerCell);
-    CmiPrintf("[%d][%d][%d] numCellsPerDim = %d\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), numCellsPerDim);
+    CmiPrintf("NumCellsPerDim = %d\n", numCellsPerDim);
 
     //declare a 2D chare array with dimensions numCellsPerDim*numCellsPerDim
     CkArrayOptions opts(numCellsPerDim, numCellsPerDim);
@@ -118,6 +117,8 @@ class Cell: public CBase_Cell {
     void perturb(Particle* particle);
     void addParticlesOfColor(int num, char c);
 
+    //int wrap(int index);
+
     void reduceTotalAndMax(){
       numParticles=particles.size();
       data[0]=numParticles;
@@ -127,7 +128,69 @@ class Cell: public CBase_Cell {
       contribute(3*sizeof(int), data, totalAndMaxType, cbTotalAndMax);
     }
 
+    void sendParticles(int xIndex, int yIndex, int iteration,  std::vector<Particle> outgoing) {
+      thisProxy(xIndex, yIndex).receiveUpdate(iteration, outgoing);
+    }
+
 };
+
+// Other particle methods
+void Cell::populateCell(int initialElements) {
+
+  //along the diagonal
+  if(thisIndex.x==thisIndex.y){
+    addParticlesOfColor(initialElements,'b');
+    addParticlesOfColor(initialElements,'g');
+  }
+
+  //lower half-blue particles to be added
+  if(thisIndex.x<thisIndex.y)
+    addParticlesOfColor(initialElements,'b');
+
+  //upper half-green particles to be added
+  if(thisIndex.x>thisIndex.y)
+    addParticlesOfColor(initialElements,'g');
+
+  int redBoxMin = (numCellsPerDim-(numCellsPerDim/4))/2;
+
+  //condition for adding red particles
+  if(thisIndex.x>=redBoxMin && thisIndex.x<redBoxMin+(numCellsPerDim/4) && thisIndex.y>=redBoxMin && thisIndex.y<redBoxMin +(numCellsPerDim/4))
+    addParticlesOfColor(2*initialElements,'r');
+}
+
+void Cell::addParticlesOfColor(int num, char c){
+  for(int i=1;i<=num;i++){
+    double randomXPosition= startX + drand48()*(cellDim);
+    double randomYPosition= startY + drand48()*(cellDim);
+    //CmiPrintf("[%d][%d][%d]   [%d][%d] addParticlesOfColor x=%lf, y=%lf\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), thisIndex.x, thisIndex.y, randomXPosition, randomYPosition);
+    Particle p(randomXPosition, randomYPosition, c);
+    particles.push_back(p);
+  }
+}
+
+//change the location of the particle within the range of 8 neighbours
+//the location of the particles might exceed the bounds of the chare array
+//as a result of this functions, so you need to handle that case when deciding
+//which particle to go which neighbour chare
+//e.g. the right neighbour of chare indexed[k-1,0] is chare [0,0]
+void Cell::perturb(Particle* particle) {
+  //drand48 creates a random number between [0-1]
+  double deltax = (drand48()-drand48())*10;
+  double deltay = (drand48()-drand48())*10;
+
+  if(particle->color=='r'){
+    particle->x += deltax;
+    particle->y += deltay;
+  }
+  else if(particle->color=='b'){
+    particle->x += deltax/2;
+    particle->y += deltax/2;
+  }
+  else if(particle->color=='g'){
+    particle->x += deltax/4;
+    particle->x += deltax/4;
+  }
+}
 
 CkReductionMsg *calculateTotalAndMax(int nMsg, CkReductionMsg **msgs)
 {
@@ -157,6 +220,6 @@ void registerCalculateTotalAndMax(void){
   totalAndMaxType=CkReduction::addReducer(calculateTotalAndMax);
 }
 
-#include "preset.C"
-#include "exercise.C"
+//#include "exercise.C"
+#include "solution.C"
 #include "ParticleExercise.def.h"

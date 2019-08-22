@@ -1,5 +1,17 @@
-//change the position of the particles and send messages to neighbors with their incoming particles
+int wrap(int index) {
+  if(index == -1) return numCellsPerDim - 1;
+  else if(index == numCellsPerDim) return 0;
+  else return index;
+}
+
 void Cell::updateParticles(int iter) {
+
+  //TODO: Add code for the following
+  // 1. Iterate through the particles and call perturb(...) passing each particle. This causes the particle's x and y coordinate to change
+  // 2. Identify the new cell that the particle belongs to and construct a vector of particles to be sent to each of the 8 neighbors (topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight)
+  // 3. Make sure that particles that go outside the bounding box are wrapped back i.e for a 2D box consisting of 8 cells in each dimension,
+  //    if a particle with the index (7,7) goes to (7, 8), it should be sent back to (7, 0).
+  // 3. Call sendParticles(...) to send the 8 different vector of particles to each of the 8 neighbours
 
   //declaring vectors for particles whose position needs to be changed
   std::vector<Particle> topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight;
@@ -65,48 +77,20 @@ void Cell::updateParticles(int iter) {
   }
   particles.resize(swapIndex+1);
 
-  //shifting the particles to the correct cells
-  newXIndex = thisIndex.x-1;
-  newYIndex = thisIndex.y-1;
-  if(newXIndex==-1) newXIndex=numCellsPerDim-1;
-  if(newYIndex==-1) newYIndex=numCellsPerDim-1;
-  thisProxy(newXIndex, newYIndex).receiveUpdate(iter,topLeft);
+  int myX = thisIndex.x;
+  int myY = thisIndex.y;
 
-  newXIndex = thisIndex.x;
-  newYIndex = thisIndex.y-1;
-  if(newYIndex==-1) newYIndex=numCellsPerDim-1;
-  thisProxy(newXIndex, newYIndex).receiveUpdate(iter,top);
+  // Send particles to my top row
+  sendParticles(wrap(myX - 1), wrap(myY - 1), iter, topLeft);
+  sendParticles(myX    , wrap(myY - 1), iter, top);
+  sendParticles(wrap(myX + 1), wrap(myY - 1), iter, topRight);
 
-  newXIndex = thisIndex.x+1;
-  newYIndex = thisIndex.y-1;
-  if(newXIndex==numCellsPerDim) newXIndex=0;
-  if(newYIndex==-1) newYIndex=numCellsPerDim-1;
-  thisProxy(newXIndex, newYIndex).receiveUpdate(iter,topRight);
+  // Send particles to my row (left and right)
+  sendParticles(wrap(myX - 1), myY    , iter, left);
+  sendParticles(wrap(myX + 1), myY    , iter, right);
 
-  newXIndex = thisIndex.x-1;
-  newYIndex = thisIndex.y;
-  if(newXIndex==-1) newXIndex=numCellsPerDim-1;
-  thisProxy(newXIndex, newYIndex).receiveUpdate(iter,left);
-
-  newXIndex = thisIndex.x+1;
-  newYIndex = thisIndex.y;
-  if(newXIndex==numCellsPerDim) newXIndex=0;
-  thisProxy(newXIndex, newYIndex).receiveUpdate(iter,right);
-
-  newXIndex = thisIndex.x-1;
-  newYIndex = thisIndex.y+1;
-  if(newXIndex==-1) newXIndex=numCellsPerDim-1;
-  if(newYIndex==numCellsPerDim) newYIndex=0;
-  thisProxy(newXIndex, newYIndex).receiveUpdate(iter,bottomLeft);
-
-  newXIndex = thisIndex.x;
-  newYIndex = thisIndex.y+1;
-  if(newYIndex==numCellsPerDim) newYIndex=0;
-  thisProxy(newXIndex, newYIndex).receiveUpdate(iter,bottom);
-
-  newXIndex = thisIndex.x+1;
-  newYIndex = thisIndex.y+1;
-  if(newXIndex==numCellsPerDim) newXIndex=0;
-  if(newYIndex==numCellsPerDim) newYIndex=0;
-  thisProxy(newXIndex, newYIndex).receiveUpdate(iter,bottomRight);
+  // Send particles to my bottom row
+  sendParticles(wrap(myX - 1), wrap(myY + 1), iter, bottomLeft);
+  sendParticles(myX    , wrap(myY + 1), iter, bottom);
+  sendParticles(wrap(myX - 1), wrap(myY + 1), iter, bottomRight);
 }
