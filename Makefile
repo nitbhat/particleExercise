@@ -1,9 +1,11 @@
-CHARM_HOME=/scratch/nitin/charm_3/mpi-linux-x86_64-debug
+CHARM_HOME=/scratch/nitin/charm/mpi-linux-x86_64-prod/
 CHARMC=${CHARM_HOME}/bin/charmc $(OPTS)
+
+MODE=solution
 
 all: particle
 
-OBJS = particle.o
+OBJS = particle.o $(MODE).o
 
 N = 1000
 K = 30
@@ -14,6 +16,9 @@ cifiles: particle.ci
 
 particle.o: particle.C cifiles
 	$(CHARMC) -c particle.C
+
+$(MODE).o: $(MODE).C cifiles
+	$(CHARMC) -c $(MODE).C
 
 particle: $(OBJS)
 	$(CHARMC) -O3 -language charm++ -o particle $(OBJS) -module CommonLBs

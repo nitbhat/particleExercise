@@ -1,3 +1,14 @@
+#include "particleExercise.decl.h"
+/*readonly*/ extern CProxy_Main mainProxy;
+/*readonly*/ extern CProxy_Cell cellProxy;
+/*readonly*/ extern int particlesPerCell;
+/*readonly*/ extern int numCellsPerDim;
+/*readonly*/ extern double boxMax;
+/*readonly*/ extern double boxMin;
+/*readonly*/ extern double cellDim;
+extern CkReduction::reducerType totalAndMaxType;
+#include "cell.h"
+
 int wrap(int index) {
   if(index == -1) return numCellsPerDim - 1;
   else if(index == numCellsPerDim) return 0;
@@ -7,7 +18,7 @@ int wrap(int index) {
 void Cell::updateParticles(int iter) {
 
   //declaring vectors for particles whose position needs to be changed
-  std::vector<Particle> topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight;
+  vector<Particle> topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight;
   int newXIndex, newYIndex;
 
   // Iterate over the particles and call 'perturb'

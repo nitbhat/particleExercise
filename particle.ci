@@ -1,6 +1,6 @@
-mainmodule ParticleExercise {
+mainmodule particleExercise {
 
-  include "Particle.h";
+  include "particle.h";
   readonly CProxy_Main mainProxy;
   readonly CProxy_Cell cellProxy;
   readonly int particlesPerCell;
