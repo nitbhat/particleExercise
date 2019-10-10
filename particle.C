@@ -118,11 +118,11 @@ void Cell::perturb(Particle* particle) {
   }
   else if(particle->color=='b'){
     particle->x += deltax/2;
-    particle->y += deltax/2;
+    particle->y += deltay/2;
   }
   else if(particle->color=='g'){
     particle->x += deltax/4;
-    particle->x += deltax/4;
+    particle->y += deltay/4;
   }
 }
 
