@@ -5,7 +5,7 @@ MODE=solution
 
 all: particle
 
-OBJS = particle.o $(MODE).o
+OBJS = particle.o $(MODE).o custom_rand_gen.o
 
 N = 1000
 K = 30
@@ -19,6 +19,9 @@ particle.o: particle.C cifiles
 
 $(MODE).o: $(MODE).C cifiles
 	$(CHARMC) -c $(MODE).C
+
+custom_rand_gen.o: custom_rand_gen.c
+	$(CHARMC) -c custom_rand_gen.c
 
 particle: $(OBJS)
 	$(CHARMC) -O3 -language charm++ -o particle $(OBJS) -module CommonLBs

@@ -28,7 +28,7 @@ class Cell: public CBase_Cell {
       startX = (double) thisIndex.x*(cellDim);
       startY = (double) thisIndex.y*(cellDim);
 
-      srand48(thisIndex.x + (numCellsPerDim)*thisIndex.y);
+      custom_srand48(thisIndex.x + (numCellsPerDim)*thisIndex.y);
       populateCell(particlesPerCell); //creates random particles within the cell
     }
     Cell(CkMigrateMessage* m) {}

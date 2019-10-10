@@ -1,4 +1,5 @@
 #include "particleExercise.decl.h"
+#include "custom_rand_gen.h"
 
 #define ITERATION (100)
 #define LBFREQ (10)
@@ -94,8 +95,8 @@ void Cell::populateCell(int initialElements) {
 
 void Cell::addParticlesOfColor(int num, char c){
   for(int i=1;i<=num;i++){
-    double randomXPosition= startX + drand48()*(cellDim);
-    double randomYPosition= startY + drand48()*(cellDim);
+    double randomXPosition= startX + custom_drand48()*(cellDim);
+    double randomYPosition= startY + custom_drand48()*(cellDim);
     //CmiPrintf("[%d][%d][%d]   [%d][%d] addParticlesOfColor x=%lf, y=%lf\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), thisIndex.x, thisIndex.y, randomXPosition, randomYPosition);
     Particle p(randomXPosition, randomYPosition, c);
     particles.push_back(p);
@@ -108,9 +109,9 @@ void Cell::addParticlesOfColor(int num, char c){
 //which particle to go which neighbour chare
 //e.g. the right neighbour of chare indexed[k-1,0] is chare [0,0]
 void Cell::perturb(Particle* particle) {
-  //drand48 creates a random number between [0-1]
-  double deltax = (drand48()-drand48())*10;
-  double deltay = (drand48()-drand48())*10;
+  //custom_drand48 creates a random number between [0-1]
+  double deltax = (custom_drand48()-custom_drand48())*10;
+  double deltay = (custom_drand48()-custom_drand48())*10;
 
   if(particle->color=='r'){
     particle->x += deltax;

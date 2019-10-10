@@ -1,4 +1,5 @@
 #include "particleExercise.decl.h"
+#include "custom_rand_gen.h"
 /*readonly*/ extern CProxy_Main mainProxy;
 /*readonly*/ extern CProxy_Cell cellProxy;
 /*readonly*/ extern int particlesPerCell;
