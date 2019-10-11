@@ -63,7 +63,7 @@ class Main: public CBase_Main {
 
   // and max counts and exiting when the iterations are done
   void printTotal(int total, int max, int iter){
-    CkPrintf("ITER %d, MAX: %d, TOTAL: %d\n", iter, max, total);
+    CkPrintf("Iteration: %d, Outgoing Particles Sum: %d, Total Particles: %d\n", iter, max, total);
   }
 };
 
@@ -131,20 +131,19 @@ CkReductionMsg *calculateTotalAndMax(int nMsg, CkReductionMsg **msgs)
 {
   int returnVal[3];
 
-  //signifies total value
+  //signifies total particles sum value
   returnVal[0]=0;
 
-  //signifies maximum value
+  //signifies outgoing particles sum value
   returnVal[1]=0;
 
   for (int i=0;i<nMsg;i++) {
     CkAssert(msgs[i]->getSize()==3*sizeof(int));
     int *m=(int *)msgs[i]->getData();
 
-    returnVal[0]+=m[0];
+    returnVal[0]+=m[0]; // Sum of total particles
 
-    if(m[1]>returnVal[1])
-      returnVal[1]=m[1];
+    returnVal[1]+=m[1]; // Sum of outbound particles
 
     returnVal[2]=m[2];
   }

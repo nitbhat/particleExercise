@@ -21,9 +21,12 @@ class Cell: public CBase_Cell {
     double startX;
     double startY;
 
+    int numOutbound;
+
     Cell() {
       __sdag_init();
       iteration = 0;
+      numOutbound = 0;
       usesAtSync = true;
       startX = (double) thisIndex.x*(cellDim);
       startY = (double) thisIndex.y*(cellDim);
@@ -40,6 +43,7 @@ class Cell: public CBase_Cell {
       p|particles;
       p | startX;
       p | startY;
+      p | numOutbound;
     }
 
     void updateNeighbor(int iter, std::vector<Particle> incoming){
@@ -58,13 +62,18 @@ class Cell: public CBase_Cell {
     void reduceTotalAndMax(){
       numParticles=particles.size();
       data[0]=numParticles;
-      data[1]=numParticles;
+      data[1]= numOutbound;
       data[2]=iteration;
       CkCallback cbTotalAndMax(CkIndex_Main::receiveReductionData(NULL),mainProxy);
+
+      // Reset numOutbound value to 0 for the next iteration
+      numOutbound = 0;
+
       contribute(3*sizeof(int), data, totalAndMaxType, cbTotalAndMax);
     }
 
     void sendParticles(int xIndex, int yIndex, int iteration,  std::vector<Particle> &outgoing) {
+      numOutbound += outgoing.size();
       thisProxy(xIndex, yIndex).receiveUpdate(iteration, outgoing);
     }
 
