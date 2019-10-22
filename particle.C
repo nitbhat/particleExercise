@@ -30,11 +30,12 @@ class Main: public CBase_Main {
     numCellsPerDim = atoi(m->argv[2]);
     delete m;
 
-    //declare box dimensions
-    boxMax=100.0;
-    boxMin=0.0;
+    // Each cell has 1.0 * 1.0 dimensions and hence the total box dimensions will be 0.0 and 1.0 * numCellsPerDim
+    // declare box dimensions
+    boxMax = numCellsPerDim * 1.0;
+    boxMin = 0.0;
 
-    cellDim = boxMax/numCellsPerDim;
+    cellDim = 1.0;
 
     CmiPrintf("NumCellsPerDim = %d\n", numCellsPerDim);
 
