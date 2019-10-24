@@ -1,12 +1,3 @@
-#include "particleExercise.decl.h"
-/*readonly*/ extern CProxy_Main mainProxy;
-/*readonly*/ extern CProxy_Cell cellProxy;
-/*readonly*/ extern int particlesPerCell;
-/*readonly*/ extern int numCellsPerDim;
-/*readonly*/ extern double boxMax;
-/*readonly*/ extern double boxMin;
-/*readonly*/ extern double cellDim;
-extern CkReduction::reducerType totalAndMaxType;
 #include "cell.h"
 
 // Useful function declarations

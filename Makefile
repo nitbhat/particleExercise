@@ -5,17 +5,20 @@ MODE=solution
 
 all: particle
 
-OBJS = particle.o $(MODE).o custom_rand_gen.o
+OBJS = main.o $(MODE).o custom_rand_gen.o cell.o
 
 N = 1000
 K = 30
 
-cifiles: particle.ci
-	$(CHARMC) particle.ci
+cifiles: particleSimulation.ci
+	$(CHARMC) particleSimulation.ci
 	touch cifiles
 
-particle.o: particle.C cifiles
-	$(CHARMC) -c particle.C
+main.o: main.C cifiles
+	$(CHARMC) -c main.C
+
+cell.o: cell.C cifiles
+	$(CHARMC) -c cell.C
 
 $(MODE).o: $(MODE).C cifiles
 	$(CHARMC) -c $(MODE).C

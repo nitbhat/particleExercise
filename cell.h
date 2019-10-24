@@ -5,7 +5,17 @@
 #include <vector>
 #include "pup_stl.h"
 #include "particle.h"
-#include "particleExercise.decl.h"
+#include "particleSimulation.decl.h"
+#include "custom_rand_gen.h"
+
+extern CProxy_Main mainProxy;
+extern CProxy_Cell cellProxy;
+extern int particlesPerCell;
+extern int numCellsPerDim;
+extern double boxMax;
+extern double boxMin;
+extern double cellDim;
+extern CkReduction::reducerType totalAndMaxType;
 
 using namespace std;
 // This class represent the cells of the simulation.
@@ -57,20 +67,7 @@ class Cell: public CBase_Cell {
     void perturb(Particle* particle);
     void addParticlesOfColor(int num, char c);
 
-    //int wrap(int index);
-
-    void reduceTotalAndMax(){
-      numParticles=particles.size();
-      data[0]=numParticles;
-      data[1]= numOutbound;
-      data[2]=iteration;
-      CkCallback cbTotalAndMax(CkIndex_Main::receiveReductionData(NULL),mainProxy);
-
-      // Reset numOutbound value to 0 for the next iteration
-      numOutbound = 0;
-
-      contribute(3*sizeof(int), data, totalAndMaxType, cbTotalAndMax);
-    }
+    void reduceTotalAndMax();
 
     void sendParticles(int xIndex, int yIndex, int iteration,  std::vector<Particle> &outgoing) {
       numOutbound += outgoing.size();
