@@ -45,7 +45,7 @@ void Cell::perturb(Particle* particle) {
   //double deltay = (custom_drand48()-custom_drand48())*10;
 
   if(particle->color=='r'){
-    particle->x += particle->x; // don't modify x coordinate
+    particle->x = particle->x; // don't modify x coordinate
     particle->y += 0.3;         // moves up by 0.3
   }
   else if(particle->color=='b'){
