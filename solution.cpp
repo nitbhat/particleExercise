@@ -97,5 +97,5 @@ void Cell::updateParticles(int iter) {
   // Send particles to my bottom row
   sendParticles(wrap(myX - 1), wrap(myY + 1), iter, bottomLeft);
   sendParticles(myX    , wrap(myY + 1), iter, bottom);
-  sendParticles(wrap(myX - 1), wrap(myY + 1), iter, bottomRight);
+  sendParticles(wrap(myX + 1), wrap(myY + 1), iter, bottomRight);
 }
