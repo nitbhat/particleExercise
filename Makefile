@@ -14,14 +14,14 @@ cifiles: particleSimulation.ci
 	$(CHARMC) particleSimulation.ci
 	touch cifiles
 
-main.o: main.C cifiles
-	$(CHARMC) -c main.C
+main.o: main.cpp cifiles
+	$(CHARMC) -c main.cpp
 
-cell.o: cell.C cifiles
-	$(CHARMC) -c cell.C
+cell.o: cell.cpp cifiles
+	$(CHARMC) -c cell.cpp
 
-$(MODE).o: $(MODE).C cifiles
-	$(CHARMC) -c $(MODE).C
+$(MODE).o: $(MODE).cpp cifiles
+	$(CHARMC) -c $(MODE).cpp
 
 custom_rand_gen.o: custom_rand_gen.c
 	$(CHARMC) -c custom_rand_gen.c
