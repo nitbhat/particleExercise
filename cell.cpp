@@ -1,4 +1,25 @@
 #include "cell.h"
+#define DEBUG(x) //x
+
+Cell::Cell() {
+  DEBUG(CmiPrintf("[%d][%d] ******************** Constructor *********************\n", thisIndex.x, thisIndex.y);)
+  __sdag_init();
+  iteration = 0;
+  numOutbound = 0;
+  usesAtSync = true;
+  startX = (double) thisIndex.x*(cellDim);
+  startY = (double) thisIndex.y*(cellDim);
+
+  endX = startX + cellDim;
+  endY = startY + cellDim;
+
+  custom_srand48(thisIndex.x + (numCellsPerDim)*thisIndex.y);
+
+  DEBUG(CmiPrintf("[%d][%d] ============================= Populating Cell=======\n", thisIndex.x, thisIndex.y);)
+  populateCell(particlesPerCell); //creates random particles within the cell
+  DEBUG(CmiPrintf("[%d][%d] ============================= Done Populating Cell=======\n", thisIndex.x, thisIndex.y);)
+}
+
 
 // Other particle methods
 void Cell::populateCell(int initialElements) {
@@ -30,6 +51,8 @@ void Cell::addParticlesOfColor(int num, char c){
     double randomYPosition= startY + custom_drand48()*(cellDim);
     //CmiPrintf("[%d][%d][%d]   [%d][%d] addParticlesOfColor x=%lf, y=%lf\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), thisIndex.x, thisIndex.y, randomXPosition, randomYPosition);
     Particle p(randomXPosition, randomYPosition, c);
+
+    checkParticleBelongsToMe(p);
     particles.push_back(p);
   }
 }
@@ -57,6 +80,45 @@ void Cell::perturb(Particle* particle) {
     particle->y += 0.1;         // moves top by 0.1
   }
 }
+
+
+void Cell::updateNeighbor(int iter, std::vector<Particle> incoming, int senderX, int senderY){
+
+  DEBUG(CmiPrintf("[%d][%d] ============================= update neighbor beginning ITER: %d coming in from [%d][%d] =======\n", thisIndex.x, thisIndex.y, iter, senderX, senderY);)
+
+  for(int i=0; i<incoming.size(); i++) {
+
+    if(thisIndex.y == 0) { // Top boundary cell
+
+      if(incoming[i].y > boxMax) // reset position
+        incoming[i].y = incoming[i].y - boxMax;
+
+    } else if(thisIndex.y == numCellsPerDim - 1) { // Bottom boundary cell
+
+      if(incoming[i].y < boxMin) //reset position
+        incoming[i].y = boxMax + incoming[i].y;
+
+    }
+
+    if(thisIndex.x == 0) { // Left boundary cell
+
+      if(incoming[i].x > boxMax) // reset position
+        incoming[i].x = incoming[i].x - boxMax;
+
+    } else if(thisIndex.x == numCellsPerDim - 1) { // Right boundary cell
+
+      if(incoming[i].x < boxMin) // reset position
+        incoming[i].x = boxMax + incoming[i].x;
+
+    }
+    checkParticleBelongsToMe(incoming[i]);
+  }
+
+  DEBUG(CmiPrintf("[%d][%d] ============================= update neighbor end ITER: %d=======\n", thisIndex.x, thisIndex.y, iter);)
+  particles.insert(particles.end(), incoming.begin(), incoming.end());
+}
+
+
 
 void Cell::reduceTotalAndMax() {
   numParticles=particles.size();

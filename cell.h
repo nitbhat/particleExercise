@@ -28,39 +28,28 @@ class Cell: public CBase_Cell {
     int iteration, numReceived, numParticles, data[3];
     vector<Particle> particles;
 
-    double startX;
-    double startY;
+    double startX, endX;
+    double startY, endY;
 
     int numOutbound;
 
-    Cell() {
-      __sdag_init();
-      iteration = 0;
-      numOutbound = 0;
-      usesAtSync = true;
-      startX = (double) thisIndex.x*(cellDim);
-      startY = (double) thisIndex.y*(cellDim);
-
-      custom_srand48(thisIndex.x + (numCellsPerDim)*thisIndex.y);
-      populateCell(particlesPerCell); //creates random particles within the cell
-    }
+    Cell();
     Cell(CkMigrateMessage* m) {}
 
     void pup(PUP::er &p){
       CBase_Cell::pup(p);
       __sdag_pup(p);
-      p|iteration;
-      p|particles;
+      p | iteration;
+      p | particles;
       p | startX;
       p | startY;
+      p | endX;
+      p | endY;
       p | numOutbound;
     }
 
-    void updateNeighbor(int iter, std::vector<Particle> incoming){
-      particles.insert(particles.end(), incoming.begin(), incoming.end());
-    }
-
     void updateParticles(int iter);
+    void updateNeighbor(int iter, std::vector<Particle> incoming, int senderX, int senderY);
 
   private:
     void populateCell(int initialElements);
@@ -71,7 +60,16 @@ class Cell: public CBase_Cell {
 
     void sendParticles(int xIndex, int yIndex, int iteration,  std::vector<Particle> &outgoing) {
       numOutbound += outgoing.size();
-      thisProxy(xIndex, yIndex).receiveUpdate(iteration, outgoing);
+      thisProxy(xIndex, yIndex).receiveUpdate(iteration, outgoing, thisIndex.x, thisIndex.y);
+    }
+
+    void checkParticleBelongsToMe(Particle &p) {
+        // Error checking
+        if(p.x < startX || p.x > endX)
+          CmiAbort("[%d][%d] Particle X coordinate %lf doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, p.x, startX, endX);
+
+        else if(p.y < startY || p.y > endY)
+          CmiAbort("[%d][%d] Particle Y coordinate %lf doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, p.y, startY, endY);
     }
 
 };

@@ -19,7 +19,7 @@ mainmodule particleSimulation {
   array [2D] Cell {
     entry Cell(void); // constructor
 
-    entry void updateNeighbor(int iter, std::vector<Particle> incoming);
+    entry void updateNeighbor(int iter, std::vector<Particle> incoming, int senderX, int senderY);
 
     // Main computation
     entry void run() {
@@ -31,9 +31,9 @@ mainmodule particleSimulation {
           }
 
           for(numReceived=0; numReceived<8; numReceived++){
-            when receiveUpdate[iteration] (int iter, std::vector<Particle> incoming) serial {
+            when receiveUpdate[iteration] (int iter, std::vector<Particle> incoming, int senderX, int senderY) serial {
               // Update the current cell with the incoming particles
-              updateNeighbor(iter, incoming);
+              updateNeighbor(iter, incoming, senderX, senderY);
             }
           }
 
@@ -47,7 +47,7 @@ mainmodule particleSimulation {
       }//end of the iteration loop
     };
 
-    entry void receiveUpdate(int iter, std::vector<Particle> incoming);
+    entry void receiveUpdate(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     entry void ResumeFromSync();
   };
 };

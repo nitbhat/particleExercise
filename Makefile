@@ -14,16 +14,16 @@ cifiles: particleSimulation.ci
 	$(CHARMC) particleSimulation.ci
 	touch cifiles
 
-main.o: main.cpp cifiles
+main.o: main.cpp cifiles main.h
 	$(CHARMC) -c main.cpp
 
-cell.o: cell.cpp cifiles
+cell.o: cell.cpp cifiles cell.h
 	$(CHARMC) -c cell.cpp
 
 $(MODE).o: $(MODE).cpp cifiles
 	$(CHARMC) -c $(MODE).cpp
 
-custom_rand_gen.o: custom_rand_gen.c
+custom_rand_gen.o: custom_rand_gen.c custom_rand_gen.h
 	$(CHARMC) -c custom_rand_gen.c
 
 particle: $(OBJS)

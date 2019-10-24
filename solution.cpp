@@ -9,6 +9,7 @@
 /*readonly*/ extern double cellDim;
 extern CkReduction::reducerType totalAndMaxType;
 #include "cell.h"
+#define DEBUG(x) //x
 
 int wrap(int index) {
   if(index == -1) return numCellsPerDim - 1;
@@ -25,61 +26,67 @@ void Cell::updateParticles(int iter) {
   // Iterate over the particles and call 'perturb'
   int swapIndex = particles.size()-1;
 
+  DEBUG(CmiPrintf("[%d][%d] ============================= update particles beginning ITER: %d=======\n", thisIndex.x, thisIndex.y, iter);)
+
   for(int i=particles.size()-1;i>=0; i--){
 
     //change the position of the particle
     perturb(&particles[i]);
 
+    double xPos = particles[i].x;
+    double yPos = particles[i].y;
+
     //find the cell the particle belongs
     //condition for shifting to top-left cell
-    if(particles[i].x<startX && particles[i].y<startY){
+    if(xPos < startX && yPos < startY){
       topLeft.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to top cell
-    else if(particles[i].x>startX && particles[i].x<startX + (cellDim) && particles[i].y<startY){
+    else if(xPos > startX && xPos < endX && yPos < startY){
       top.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to top-right cell
-    else if(particles[i].x>startX+(cellDim) && particles[i].y<startY){
+    else if(xPos > endX && yPos < startY){
       topRight.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to left cell
-    else if(particles[i].x < startX && particles[i].y>startY && particles[i].y<startY+ (cellDim)){
+    else if(xPos < startX && yPos > startY && yPos < endY){
       left.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to right cell
-    else if(particles[i].x>startX+(cellDim) && particles[i].y>startY && particles[i].y<startY + (cellDim))
-    {
+    else if(xPos > endX && yPos > startY && yPos < endY) {
       right.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to bottom-left cell
-    else if(particles[i].x<startX && particles[i].y>startY+(cellDim)){
+    else if(xPos < startX && yPos > endY){
       bottomLeft.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to bottom cell
-    else if(particles[i].x>startX && particles[i].x<startX+(cellDim) && particles[i].y>startY+ (cellDim)){
+    else if(xPos > startX && xPos < endX && yPos > endY){
       bottom.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
 
     //condition for shifting to bottom-right cell
-    else if(particles[i].x >startX+ (cellDim) && particles[i].y>startY+ (cellDim)){
+    else if(xPos > endX && yPos > endY){
       bottomRight.push_back(particles[i]);
       swap(particles[i], particles[swapIndex--]);
     }
   }
+
+  DEBUG(CmiPrintf("[%d][%d] ============================= update particles end ITER: %d=======\n", thisIndex.x, thisIndex.y, iter);)
   particles.resize(swapIndex+1);
 
   int myX = thisIndex.x;
