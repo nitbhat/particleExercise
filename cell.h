@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <vector>
 #include "pup_stl.h"
+#include <string>
+using namespace std;
 #include "particle.h"
 #include "particleSimulation.decl.h"
 #include "custom_rand_gen.h"
@@ -17,7 +19,6 @@ extern double boxMin;
 extern double cellDim;
 extern CkReduction::reducerType totalAndMaxType;
 
-using namespace std;
 // This class represent the cells of the simulation.
 /// Each cell contains a vector of particle.
 // On each time step, the cell perturbs the particles and moves them to neighboring cells as necessary.
@@ -50,6 +51,7 @@ class Cell: public CBase_Cell {
 
     void updateParticles(int iter);
     void updateNeighbor(int iter, std::vector<Particle> incoming, int senderX, int senderY);
+    void sortAndDump(string subFolderName);
 
   private:
     void populateCell(int initialElements);

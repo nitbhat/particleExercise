@@ -14,6 +14,7 @@ mainmodule particleSimulation {
   mainchare Main {
     entry Main(CkArgMsg* m);
     entry [reductiontarget] void receiveReductionData(CkReductionMsg *data);
+    entry [reductiontarget] void done();
   };
 
   array [2D] Cell {
@@ -49,5 +50,6 @@ mainmodule particleSimulation {
 
     entry void receiveUpdate(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     entry void ResumeFromSync();
+    entry void sortAndDump(string subFolderName);
   };
 };

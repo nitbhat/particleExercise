@@ -25,6 +25,11 @@ public:
       p|y;
       p|color;
     }
+
+    bool operator <(const Particle& p) const {
+      if(gid < p.gid) return true;
+      return false;
+    }
 };
 
 #endif

@@ -32,6 +32,9 @@ particle: $(OBJS)
 clean:
 	rm -f *.decl.h *.def.h conv-host *.o particle charmrun cifiles
 
+outclean:
+	rm -rf ./output
+
 cleanp:
 	rm -f *.sts *.gz *.projrc *.topo *.out
 

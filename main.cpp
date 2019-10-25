@@ -1,5 +1,9 @@
 #include "main.h"
 #include "cell.h"
+#include <sys/stat.h>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 class Main: public CBase_Main {
 
@@ -44,8 +48,39 @@ class Main: public CBase_Main {
       endTime = CkWallTimer();
       totalTime = (endTime - startTime);
       CkPrintf("Simulation Complete, total time taken is %lf seconds\n", totalTime);
-      CkExit();
+
+      struct stat info;
+      if(stat("output", &info) != 0) {
+        // Create an output directory
+        const int mkdirOut = mkdir("output", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if (-1 == mkdirOut) {
+          CmiAbort("Error while creating the output directory");
+        }
+      }
+
+      char runOutputFolder[80];
+      time_t t = time(0);
+      struct tm *now = localtime(&t);
+      strftime(runOutputFolder, 80, "sim_output_%Y-%m-%d-%H-%M-%S", now);
+
+      string name(runOutputFolder);
+      string parentFolder("output/");
+      string finalPath = parentFolder + name;
+
+      // Create an output subdirectory that is dependent on the current time
+      const int mkdirOut = mkdir(finalPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      if (-1 == mkdirOut) {
+        CmiAbort("Error while creating the output sub-directory");
+      }
+
+      // Make each chare write to a file
+      cellGrid.sortAndDump(finalPath);
     }
+  }
+
+  void done() {
+    CkPrintf("All output has been written to files, Exiting program\n");
+    CkExit();
   }
 
   // and max counts and exiting when the iterations are done

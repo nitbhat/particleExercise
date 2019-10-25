@@ -1,3 +1,5 @@
+#include <string>
+using namespace std;
 #include "particleSimulation.decl.h"
 #include "custom_rand_gen.h"
 /*readonly*/ extern CProxy_Main mainProxy;

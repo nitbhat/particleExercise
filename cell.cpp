@@ -1,4 +1,7 @@
 #include "cell.h"
+#include <iostream>
+#include <fstream>
+#include <string>
 #define DEBUG(x) //x
 
 Cell::Cell() {
@@ -173,6 +176,32 @@ void Cell::reduceTotalAndMax() {
   numOutbound = 0;
 
   contribute(3*sizeof(int), data, totalAndMaxType, cbTotalAndMax);
+}
+
+void Cell::sortAndDump(string subFolderName) {
+  sort(particles.begin(), particles.end());
+
+  // Create a file
+  ofstream myFile;
+
+  string myFileName = subFolderName + "/sim_output_" + to_string(thisIndex.x) + "_" + to_string(thisIndex.y);
+  myFile.open(myFileName);
+
+  if(myFile.is_open()) {
+    myFile << "====================================== BEGIN ==========================================" << endl;
+    myFile << "Cell:"<<thisIndex.x <<","<< thisIndex.y<< endl;
+    myFile << "=======================================================================================" << endl;
+    for(int i=0; i<particles.size(); i++) {
+      checkParticleBelongsToMe(particles[i]);
+      DEBUG(CmiPrintf("[%d][%d] Final particle Sorted gid=%d => x=%lf, y=%lf, color=%c\n", thisIndex.x, thisIndex.y, particles[i].gid, particles[i].x, particles[i].y, particles[i].color);)
+      myFile << "Particle:"<< particles[i].gid <<","<<particles[i].x << "," << particles[i].y << "," << particles[i].color << endl;
+    }
+    myFile << "====================================== END ==========================================" << endl;
+  }
+  myFile.close();
+
+  CkCallback doneCb(CkIndex_Main::done(), mainProxy);
+  contribute(doneCb);
 }
 
 
