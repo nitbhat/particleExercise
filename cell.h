@@ -54,7 +54,7 @@ class Cell: public CBase_Cell {
   private:
     void populateCell(int initialElements);
     void perturb(Particle* particle);
-    void addParticlesOfColor(int num, char c);
+    void addParticlesOfColor(int num, char c, int &startId);
 
     void reduceTotalAndMax();
 
@@ -72,6 +72,9 @@ class Cell: public CBase_Cell {
           CmiAbort("[%d][%d] Particle Y coordinate %lf doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, p.y, startY, endY);
     }
 
+    int computeParticlesInCell(int cellX, int cellY);
+    int computeParticlesInCell();
+    int getParticleStartId();
 };
 
 #endif

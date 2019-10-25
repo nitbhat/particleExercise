@@ -24,37 +24,45 @@ Cell::Cell() {
 // Other particle methods
 void Cell::populateCell(int initialElements) {
 
+  int startId = getParticleStartId();
+
+  DEBUG(CmiPrintf("[%d][%d] Populating Cell and start id is %d=======\n", thisIndex.x, thisIndex.y, startId);)
   //along the diagonal
   if(thisIndex.x==thisIndex.y){
-    addParticlesOfColor(initialElements,'b');
-    addParticlesOfColor(initialElements,'g');
+    addParticlesOfColor(initialElements,'b', startId);
+    addParticlesOfColor(initialElements,'g', startId);
   }
 
   //lower half-blue particles to be added
   if(thisIndex.x<thisIndex.y)
-    addParticlesOfColor(initialElements,'b');
+    addParticlesOfColor(initialElements,'b', startId);
 
   //upper half-green particles to be added
   if(thisIndex.x>thisIndex.y)
-    addParticlesOfColor(initialElements,'g');
+    addParticlesOfColor(initialElements,'g', startId);
 
   int redBoxMin = (numCellsPerDim-(numCellsPerDim/4))/2;
 
   //condition for adding red particles
   if(thisIndex.x>=redBoxMin && thisIndex.x<redBoxMin+(numCellsPerDim/4) && thisIndex.y>=redBoxMin && thisIndex.y<redBoxMin +(numCellsPerDim/4))
-    addParticlesOfColor(2*initialElements,'r');
+    addParticlesOfColor(2*initialElements,'r', startId);
+
+  DEBUG(CmiPrintf("[%d][%d] ============================= Added %d particles =======\n", thisIndex.x, thisIndex.y, computeParticlesInCell());)
 }
 
-void Cell::addParticlesOfColor(int num, char c){
+void Cell::addParticlesOfColor(int num, char c, int &startId){
   for(int i=1;i<=num;i++){
     double randomXPosition= startX + custom_drand48()*(cellDim);
     double randomYPosition= startY + custom_drand48()*(cellDim);
-    //CmiPrintf("[%d][%d][%d]   [%d][%d] addParticlesOfColor x=%lf, y=%lf\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), thisIndex.x, thisIndex.y, randomXPosition, randomYPosition);
-    Particle p(randomXPosition, randomYPosition, c);
+    int id = startId + i;
+
+    DEBUG(CmiPrintf("[%d][%d][%d]   [%d][%d] addParticlesOfColor x=%lf, y=%lf, color=%c, gid= %d\n", CmiMyPe(), CmiMyNode(), CmiMyRank(), thisIndex.x, thisIndex.y, randomXPosition, randomYPosition, c, id);)
+    Particle p(randomXPosition, randomYPosition, c, id);
 
     checkParticleBelongsToMe(p);
     particles.push_back(p);
   }
+  startId += num; // Update the startId after adding num particles
 }
 
 //change the location of the particle within the range of 8 neighbours
@@ -118,7 +126,41 @@ void Cell::updateNeighbor(int iter, std::vector<Particle> incoming, int senderX,
   particles.insert(particles.end(), incoming.begin(), incoming.end());
 }
 
+int Cell::computeParticlesInCell(int cellX, int cellY) {
+  int numParticles = 0;
 
+  //along the diagonal
+  if(cellX==cellY){
+    numParticles += 2*(particlesPerCell);
+  }
+
+  //lower half-blue or upper half-green
+  else if(cellX < cellY || cellX > cellY)
+    numParticles += particlesPerCell;
+
+  int redBoxMin = (numCellsPerDim-(numCellsPerDim/4))/2;
+
+  //condition for adding red particles
+  if(cellX>=redBoxMin && cellX<redBoxMin+(numCellsPerDim/4) && cellY>=redBoxMin && cellY<redBoxMin +(numCellsPerDim/4))
+    numParticles += 2*particlesPerCell;
+
+  return numParticles;
+
+}
+int Cell::computeParticlesInCell() {
+  return computeParticlesInCell(thisIndex.x, thisIndex.y);
+}
+
+int Cell::getParticleStartId() {
+  int startId = 0;
+  for(int j=0; j <= thisIndex.y; j++) { // iterate over columns
+    for(int i=0; i < numCellsPerDim; i++) { // iterate over rows
+      if(j == thisIndex.y && i == thisIndex.x)
+        return startId;
+      startId += computeParticlesInCell(i, j);
+    }
+  }
+}
 
 void Cell::reduceTotalAndMax() {
   numParticles=particles.size();
