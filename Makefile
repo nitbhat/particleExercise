@@ -7,8 +7,8 @@ all: particle
 
 OBJS = main.o $(MODE).o custom_rand_gen.o cell.o
 
-N = 1000
-K = 30
+N = 100
+K = 4
 
 cifiles: particleSimulation.ci
 	$(CHARMC) particleSimulation.ci
