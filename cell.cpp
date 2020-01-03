@@ -163,6 +163,8 @@ int Cell::getParticleStartId() {
       startId += computeParticlesInCell(i, j);
     }
   }
+  CkAbort("Cell [%d][%d] Couldn't obtain startId for this cell, error!", thisIndex.x, thisIndex.y);
+  return -1;
 }
 
 void Cell::reduceTotalAndMax() {
