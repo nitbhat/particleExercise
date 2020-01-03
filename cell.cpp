@@ -206,6 +206,61 @@ void Cell::sortAndDump(string subFolderName) {
   contribute(doneCb);
 }
 
+#if LIVEVIZ_RUN
+void Cell::mapChareToImage(liveVizRequestMsg *m){
+  //CmiPrintf("[%d][%d] Cell::mapChareToImage\n", thisIndex.x, thisIndex.y);
+  int beginX = thisIndex.x*(cellDim)*pixelScale;
+  int beginY = thisIndex.y*(cellDim)*pixelScale;
+
+  int width = cellDim*pixelScale;
+  int height = cellDim*pixelScale;
+
+  unsigned char *imageBuff = new unsigned char[3*width*height];
+
+  //set each pixed to black
+  for(int i=0;i<height;++i){
+    for(int j=0;j<width;++j){
+      imageBuff[3*(i*width+j)+0] = 255;
+      imageBuff[3*(i*width+j)+1] = 255;
+      imageBuff[3*(i*width+j)+2] = 255;
+    }
+  }
+
+  for(int i=0;i<particles.size(); i++){
+
+    int xPoint = (particles[i].x - startX)*pixelScale;
+    int yPoint = (particles[i].y - startY)*pixelScale;
+
+    if(xPoint>0 && xPoint<width && yPoint>0 && yPoint<height){
+      int r=0, g=0, b=0;
+      if(particles[i].color=='r') r=255;
+      else if(particles[i].color=='g') g=255;
+      else if(particles[i].color=='b') b=255;
+
+      int index = yPoint * width + xPoint;
+
+      imageBuff[3*index+0] = r;
+      imageBuff[3*index+1] = g;
+      imageBuff[3*index+2] = b;
+    }
+  }
+
+  //set boundaries
+  for(int i=0; i<width; ++i){
+    imageBuff[3*((height-1)*width+i)+0] = 0;
+    imageBuff[3*((height-1)*width+i)+1] = 0;
+    imageBuff[3*((height-1)*width+i)+2] = 0;
+  }
+  for(int i=0;i<height;++i){
+    imageBuff[3*(i*width+width-1)+0] = 0;
+    imageBuff[3*(i*width+width-1)+1] = 0;
+    imageBuff[3*(i*width+width-1)+2] = 0;
+  }
+
+  liveVizDeposit (m, beginX, beginY, width, height, imageBuff, this);
+  delete [] imageBuff;
+}
+#endif
 
 
 

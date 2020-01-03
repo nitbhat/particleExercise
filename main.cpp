@@ -33,6 +33,13 @@ class Main: public CBase_Main {
     CkArrayOptions opts(numCellsPerDim, numCellsPerDim);
     cellGrid = CProxy_Cell::ckNew(opts);
 
+#if LIVEVIZ_RUN
+    pixelScale  = 100.0;
+    CkCallback c(CkIndex_Cell::mapChareToImage(0), cellGrid);
+    liveVizConfig cfg(liveVizConfig::pix_color, true);
+    liveVizInit(cfg, cellGrid, c, opts);
+#endif
+
     startTime = CkWallTimer();
 
     //start the run for all the chares

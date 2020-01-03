@@ -1,5 +1,10 @@
 #include <string>
 using namespace std;
+
+#if LIVEVIZ_RUN
+#include "liveViz.h"
+#endif
+
 #include "particleSimulation.decl.h"
 #include "custom_rand_gen.h"
 /*readonly*/ extern CProxy_Main mainProxy;

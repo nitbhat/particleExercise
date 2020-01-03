@@ -2,6 +2,11 @@
 #define MAIN_H
 #include <string>
 using namespace std;
+
+#if LIVEVIZ_RUN
+#include "liveViz.h"
+#endif
+
 #include "particleSimulation.decl.h"
 #include "custom_rand_gen.h"
 
@@ -16,6 +21,11 @@ using namespace std;
 /*readonly*/ double boxMax;
 /*readonly*/ double boxMin;
 /*readonly*/ double cellDim;
+
+#if LIVEVIZ_RUN
+/*readonly*/ double pixelScale;
+#endif
+
 CkReduction::reducerType totalAndMaxType;
 
 #endif

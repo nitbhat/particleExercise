@@ -1,6 +1,15 @@
 CHARM_HOME=/scratch/nitin/charm/mpi-linux-x86_64-prod/
 CHARMC=${CHARM_HOME}/bin/charmc $(OPTS)
 
+LIVEVIZ_RUN=0
+
+ifeq ($(LIVEVIZ_RUN), 1)
+  CHARMC=${CHARM_HOME}/bin/charmc -module liveViz -DLIVEVIZ_RUN=1 $(OPTS)
+else
+  CHARMC=${CHARM_HOME}/bin/charmc -DLIVEVIZ_RUN=0 $(OPTS)
+endif
+
+
 MODE=solution
 
 all: particle
@@ -40,3 +49,6 @@ cleanp:
 
 test: all
 	./charmrun ./particle $(N) $(K) ++local +p4 $(TESTOPTS)
+
+testviz: all
+	./charmrun ./particle $(N) $(K) ++local +p4 ++server ++server-port 1234 $(TESTOPTS)

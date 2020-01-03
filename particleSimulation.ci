@@ -9,6 +9,10 @@ mainmodule particleSimulation {
   readonly double boxMin;
   readonly double cellDim;
 
+#if LIVEVIZ_RUN
+  readonly double pixelScale;
+#endif
+
   initnode void registerCalculateTotalAndMax(void);
 
   mainchare Main {
@@ -51,5 +55,9 @@ mainmodule particleSimulation {
     entry void receiveUpdate(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     entry void ResumeFromSync();
     entry void sortAndDump(string subFolderName);
+
+#if LIVEVIZ_RUN
+    entry void mapChareToImage(liveVizRequestMsg *m);
+#endif
   };
 };

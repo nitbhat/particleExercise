@@ -7,6 +7,11 @@
 #include <string>
 using namespace std;
 #include "particle.h"
+
+#if LIVEVIZ_RUN
+#include "liveViz.h"
+#endif
+
 #include "particleSimulation.decl.h"
 #include "custom_rand_gen.h"
 
@@ -17,6 +22,11 @@ extern int numCellsPerDim;
 extern double boxMax;
 extern double boxMin;
 extern double cellDim;
+
+#if LIVEVIZ_RUN
+extern double pixelScale;
+#endif
+
 extern CkReduction::reducerType totalAndMaxType;
 
 // This class represent the cells of the simulation.
@@ -52,6 +62,10 @@ class Cell: public CBase_Cell {
     void updateParticles(int iter);
     void updateNeighbor(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     void sortAndDump(string subFolderName);
+
+#if LIVEVIZ_RUN
+    void mapChareToImage(liveVizRequestMsg *m);
+#endif
 
   private:
     void populateCell(int initialElements);
