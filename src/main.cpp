@@ -5,106 +5,126 @@
 #include <fstream>
 #include <string>
 
-class Main: public CBase_Main {
-
-  CProxy_Cell cellGrid;
-
-  double startTime, endTime, totalTime;
-
-  public:
-  Main(CkArgMsg* m) {
-    if(m->argc < 5) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array> <numIterations> <load balancing Frequency>");
-
-    mainProxy = thisProxy;
-    particlesPerCell = atoi(m->argv[1]);
-    numCellsPerDim = atoi(m->argv[2]);
-    iterations = atoi(m->argv[3]);
-    lbFreq = atoi(m->argv[4]);
-    delete m;
-
-    // Each cell has 1.0 * 1.0 dimensions and hence the total box dimensions will be 0.0 and 1.0 * numCellsPerDim
-    // declare box dimensions
-    boxMax = numCellsPerDim * 1.0;
-    boxMin = 0.0;
-
-    cellDim = 1.0;
-
-    CkPrintf("================================ Input Params ===============================\n");
-    CkPrintf("====================== Particles In A Box Simulation ========================\n");
-    CkPrintf("Grid Size                                                  = %d X %d\n", numCellsPerDim, numCellsPerDim);
-    CkPrintf("Particles/Cell seed value                                  = %d\n", particlesPerCell);
-    CkPrintf("Number of Iterations                                       = %d\n", iterations);
-    CkPrintf("Load Balancing Frequency                                   = %d\n", lbFreq);
-    CkPrintf("=============================================================================\n");
-    CkPrintf("======================= Launching Particle Simulation =======================\n");
-
-    //declare a 2D chare array with dimensions numCellsPerDim*numCellsPerDim
-    CkArrayOptions opts(numCellsPerDim, numCellsPerDim);
-    cellGrid = CProxy_Cell::ckNew(opts);
+/*readonly*/ CProxy_Main mainProxy;
+/*readonly*/ CProxy_Cell cellProxy;
+/*readonly*/ int particlesPerCell;
+/*readonly*/ int numCellsPerDim;
+/*readonly*/ int iterations;
+/*readonly*/ int lbFreq;
+/*readonly*/ double boxMax;
+/*readonly*/ double boxMin;
+/*readonly*/ double cellDim;
 
 #if LIVEVIZ_RUN
-    pixelScale  = 100.0;
-    CkCallback c(CkIndex_Cell::mapChareToImage(0), cellGrid);
-    liveVizConfig cfg(liveVizConfig::pix_color, true);
-    liveVizInit(cfg, cellGrid, c, opts);
+/*readonly*/ double pixelScale;
 #endif
 
-    startTime = CkWallTimer();
+CkReduction::reducerType totalAndMaxType;
 
-    //start the run for all the chares
-    cellGrid.run();
+Main::Main(CkArgMsg* m) {
+  if(m->argc < 5) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array> <numIterations> <load balancing Frequency>");
+
+  mainProxy = thisProxy;
+  particlesPerCell = atoi(m->argv[1]);
+  numCellsPerDim = atoi(m->argv[2]);
+  iterations = atoi(m->argv[3]);
+  lbFreq = atoi(m->argv[4]);
+  delete m;
+
+  // Each cell has 1.0 * 1.0 dimensions and hence the total box dimensions will be 0.0 and 1.0 * numCellsPerDim
+  // declare box dimensions
+  boxMax = numCellsPerDim * 1.0;
+  boxMin = 0.0;
+
+  cellDim = 1.0;
+
+  CkPrintf("================================ Input Params ===============================\n");
+  CkPrintf("====================== Particles In A Box Simulation ========================\n");
+  CkPrintf("Grid Size                                                  = %d X %d\n", numCellsPerDim, numCellsPerDim);
+  CkPrintf("Particles/Cell seed value                                  = %d\n", particlesPerCell);
+  CkPrintf("Number of Iterations                                       = %d\n", iterations);
+  CkPrintf("Load Balancing Frequency                                   = %d\n", lbFreq);
+  CkPrintf("=============================================================================\n");
+  CkPrintf("======================= Launching Particle Simulation =======================\n");
+
+  counter = 0;
+#if BONUS_QUESTION
+  total = 3;
+#else
+  total = 1;
+#endif
+
+  //declare a 2D chare array with dimensions numCellsPerDim*numCellsPerDim
+  CkArrayOptions opts(numCellsPerDim, numCellsPerDim);
+  cellGrid = CProxy_Cell::ckNew(opts);
+
+#if LIVEVIZ_RUN
+  pixelScale  = 100.0;
+  CkCallback c(CkIndex_Cell::mapChareToImage(0), cellGrid);
+  liveVizConfig cfg(liveVizConfig::pix_color, true);
+  liveVizInit(cfg, cellGrid, c, opts);
+#endif
+
+  startTime = CkWallTimer();
+
+  //start the run for all the chares
+  cellGrid.run();
+}
+
+//function to receive the reduction result
+void Main::receiveReductionData(CkReductionMsg *data){
+  int *output = (int *) data->getData();
+  //CkAssert(output[2] == particlesPerCell*numCellsPerDim*numCellsPerDim);
+  printTotal(output[0], output[1], output[2]);
+  if(output[2] == iterations) {
+    endTime = CkWallTimer();
+    totalTime = (endTime - startTime);
+    CkPrintf("Simulation Complete, total time taken is %lf seconds\n", totalTime);
+    readyToOutput();
   }
+}
 
-  //function to receive the reduction result
-  void receiveReductionData(CkReductionMsg *data){
-    int *output = (int *) data->getData();
-    //CkAssert(output[2] == particlesPerCell*numCellsPerDim*numCellsPerDim);
-    printTotal(output[0], output[1], output[2]);
-    if(output[2] == iterations) {
-      endTime = CkWallTimer();
-      totalTime = (endTime - startTime);
-      CkPrintf("Simulation Complete, total time taken is %lf seconds\n", totalTime);
+void Main::readyToOutput() {
+  if(++counter == total) {
 
-      struct stat info;
-      if(stat("output", &info) != 0) {
-        // Create an output directory
-        const int mkdirOut = mkdir("output", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        if (-1 == mkdirOut) {
-          CmiAbort("Error while creating the output directory");
-        }
-      }
-
-      char runOutputFolder[80];
-      time_t t = time(0);
-      struct tm *now = localtime(&t);
-      strftime(runOutputFolder, 80, "sim_output_%Y-%m-%d-%H-%M-%S", now);
-
-      string name(runOutputFolder);
-      string parentFolder("output/");
-      string finalPath = parentFolder + name;
-
-      // Create an output subdirectory that is dependent on the current time
-      const int mkdirOut = mkdir(finalPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    struct stat info;
+    if(stat("output", &info) != 0) {
+      // Create an output directory
+      const int mkdirOut = mkdir("output", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
       if (-1 == mkdirOut) {
-        CmiAbort("Error while creating the output sub-directory");
+        CmiAbort("Error while creating the output directory");
       }
-
-      // Make each chare write to a file
-      cellGrid.sortAndDump(finalPath);
     }
-  }
 
-  void done() {
-    CkPrintf("All output has been written to files, Exiting program\n");
-    CkExit();
-  }
+    char runOutputFolder[80];
+    time_t t = time(0);
+    struct tm *now = localtime(&t);
+    strftime(runOutputFolder, 80, "sim_output_%Y-%m-%d-%H-%M-%S", now);
 
-  // and max counts and exiting when the iterations are done
-  void printTotal(int total, int max, int iter){
-    CkPrintf("Iteration: %d, Outgoing Particles Sum: %d, Total Particles: %d\n", iter, max, total);
-  }
-};
+    string name(runOutputFolder);
+    string parentFolder("output/");
+    string finalPath = parentFolder + name;
 
+    // Create an output subdirectory that is dependent on the current time
+    const int mkdirOut = mkdir(finalPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if (-1 == mkdirOut) {
+      CmiAbort("Error while creating the output sub-directory");
+    }
+
+    // Make each chare write to a file
+    cellGrid.sortAndDump(finalPath);
+  }
+}
+
+void Main::done() {
+  CkPrintf("All output has been written to files, Exiting program\n");
+  CkExit();
+}
+
+// and max counts and exiting when the iterations are done
+void Main::printTotal(int total, int max, int iter){
+  CkPrintf("Iteration: %d, Outgoing Particles Sum: %d, Total Particles: %d\n", iter, max, total);
+}
 
 // Global Functions
 CkReductionMsg *calculateTotalAndOutbound(int nMsg, CkReductionMsg **msgs) {

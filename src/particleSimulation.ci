@@ -21,6 +21,11 @@ mainmodule particleSimulation {
     entry Main(CkArgMsg* m);
     entry [reductiontarget] void receiveReductionData(CkReductionMsg *data);
     entry [reductiontarget] void done();
+
+#if BONUS_QUESTION
+    entry [reductiontarget] void computeMin(int min);
+    entry [reductiontarget] void computeMax(int max);
+#endif
   };
 
   array [2D] Cell {
@@ -52,6 +57,12 @@ mainmodule particleSimulation {
             serial{ AtSync(); } when ResumeFromSync() {}
           }
       }//end of the iteration loop
+
+#if BONUS_QUESTION
+      serial {
+        contributeToReduction();
+      }
+#endif
     };
 
     entry void receiveUpdate(int iter, std::vector<Particle> incoming, int senderX, int senderY);

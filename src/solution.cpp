@@ -17,7 +17,9 @@ using namespace std;
 /*readonly*/ extern double boxMin;
 /*readonly*/ extern double cellDim;
 extern CkReduction::reducerType totalAndMaxType;
+
 #include "cell.h"
+#include "main.h"
 #define DEBUG(x) //x
 
 int wrap(int index) {
@@ -115,3 +117,25 @@ void Cell::updateParticles(int iter) {
   sendParticles(myX    , wrap(myY + 1), iter, bottom);
   sendParticles(wrap(myX + 1), wrap(myY + 1), iter, bottomRight);
 }
+
+#if BONUS_QUESTION
+void Cell::contributeToReduction() {
+  CkCallback minCb(CkReductionTarget(Main, computeMin), mainProxy);
+  CkCallback maxCb(CkReductionTarget(Main, computeMax), mainProxy);
+
+  int size = particles.size();
+
+  contribute(sizeof(int), &size, CkReduction::min_int, minCb);
+  contribute(sizeof(int), &size, CkReduction::max_int, maxCb);
+}
+
+void Main::computeMin(int min) {
+  CmiPrintf("Minimum number of particles is %d\n", min);
+  readyToOutput();
+}
+
+void Main::computeMax(int max) {
+  CmiPrintf("Maximum number of particles is %d\n", max);
+  readyToOutput();
+}
+#endif

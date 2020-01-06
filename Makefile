@@ -1,14 +1,24 @@
 CHARM_HOME=/Users/nitinbhat/Work/software/charm/netlrts-darwin-x86_64-prod
 CHARMC=${CHARM_HOME}/bin/charmc $(OPTS)
 
+BONUS_QUESTION=0
 LIVEVIZ_RUN=0
 
+CHARMC=${CHARM_HOME}/bin/charmc
+
 ifeq ($(LIVEVIZ_RUN), 1)
-  CHARMC=${CHARM_HOME}/bin/charmc -module liveViz -DLIVEVIZ_RUN=1 $(OPTS)
+  CHARMC += -module liveViz -DLIVEVIZ_RUN=1
 else
-  CHARMC=${CHARM_HOME}/bin/charmc -DLIVEVIZ_RUN=0 $(OPTS)
+  CHARMC += -DLIVEVIZ_RUN=0
 endif
 
+ifeq ($(BONUS_QUESTION), 1)
+  CHARMC += -DBONUS_QUESTION=1
+else
+  CHARMC += -DBONUS_QUESTION=0
+endif
+
+CHARMC += $(OPTS)
 
 MODE=solution
 

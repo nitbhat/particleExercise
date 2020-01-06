@@ -15,20 +15,6 @@ using namespace std;
 #include "particleSimulation.decl.h"
 #include "custom_rand_gen.h"
 
-extern CProxy_Main mainProxy;
-extern CProxy_Cell cellProxy;
-extern int particlesPerCell;
-extern int numCellsPerDim;
-extern double boxMax;
-extern double boxMin;
-extern double cellDim;
-
-#if LIVEVIZ_RUN
-extern double pixelScale;
-#endif
-
-extern CkReduction::reducerType totalAndMaxType;
-
 // This class represent the cells of the simulation.
 /// Each cell contains a vector of particle.
 // On each time step, the cell perturbs the particles and moves them to neighboring cells as necessary.
@@ -91,6 +77,10 @@ class Cell: public CBase_Cell {
     int computeParticlesInCell(int cellX, int cellY);
     int computeParticlesInCell();
     int getParticleStartId();
+
+#if BONUS_QUESTION
+    void contributeToReduction();
+#endif
 };
 
 #endif

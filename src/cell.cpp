@@ -4,6 +4,20 @@
 #include <string>
 #define DEBUG(x) //x
 
+extern CProxy_Main mainProxy;
+extern CProxy_Cell cellProxy;
+extern int particlesPerCell;
+extern int numCellsPerDim;
+extern double boxMax;
+extern double boxMin;
+extern double cellDim;
+
+#if LIVEVIZ_RUN
+extern double pixelScale;
+#endif
+
+extern CkReduction::reducerType totalAndMaxType;
+
 Cell::Cell() {
   DEBUG(CmiPrintf("[%d][%d] ******************** Constructor *********************\n", thisIndex.x, thisIndex.y);)
   __sdag_init();

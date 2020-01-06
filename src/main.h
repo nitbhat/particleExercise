@@ -12,20 +12,28 @@ using namespace std;
 
 #define PIXEL_SCALE (8)
 
-/*readonly*/ CProxy_Main mainProxy;
-/*readonly*/ CProxy_Cell cellProxy;
-/*readonly*/ int particlesPerCell;
-/*readonly*/ int numCellsPerDim;
-/*readonly*/ int iterations;
-/*readonly*/ int lbFreq;
-/*readonly*/ double boxMax;
-/*readonly*/ double boxMin;
-/*readonly*/ double cellDim;
 
-#if LIVEVIZ_RUN
-/*readonly*/ double pixelScale;
+class Main: public CBase_Main {
+
+  CProxy_Cell cellGrid;
+  double startTime, endTime, totalTime;
+
+  int counter, total;
+
+  public:
+    Main(CkArgMsg* m);
+
+    //function to receive the reduction result
+    void receiveReductionData(CkReductionMsg *data);
+    void done();
+    void printTotal(int total, int max, int iter);
+
+    void readyToOutput();
+
+#if BONUS_QUESTION
+    void computeMin(int min);
+    void computeMax(int max);
 #endif
-
-CkReduction::reducerType totalAndMaxType;
+};
 
 #endif
