@@ -5,6 +5,8 @@ mainmodule particleSimulation {
   readonly CProxy_Cell cellProxy;
   readonly int particlesPerCell;
   readonly int numCellsPerDim;
+  readonly int iterations;
+  readonly int lbFreq;
   readonly double boxMax;
   readonly double boxMin;
   readonly double cellDim;
@@ -13,7 +15,7 @@ mainmodule particleSimulation {
   readonly double pixelScale;
 #endif
 
-  initnode void registerCalculateTotalAndMax(void);
+  initnode void registerCalculateTotalAndOutbound(void);
 
   mainchare Main {
     entry Main(CkArgMsg* m);
@@ -28,7 +30,7 @@ mainmodule particleSimulation {
 
     // Main computation
     entry void run() {
-      for(iteration=1; iteration<=ITERATION; iteration++){
+      for(iteration=1; iteration<=iterations; iteration++){
 
           serial{
             // Allow the particles to move around
@@ -46,7 +48,7 @@ mainmodule particleSimulation {
             reduceTotalAndMax();
           }
 
-          if(iteration % LBFREQ == 0 && iteration != ITERATION){
+          if(iteration % lbFreq == 0 && iteration != iterations){
             serial{ AtSync(); } when ResumeFromSync() {}
           }
       }//end of the iteration loop

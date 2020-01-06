@@ -13,11 +13,13 @@ class Main: public CBase_Main {
 
   public:
   Main(CkArgMsg* m) {
-    if(m->argc < 3) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array>");
+    if(m->argc < 5) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array> <numIterations> <load balancing Frequency>");
 
     mainProxy = thisProxy;
     particlesPerCell = atoi(m->argv[1]);
     numCellsPerDim = atoi(m->argv[2]);
+    iterations = atoi(m->argv[3]);
+    lbFreq = atoi(m->argv[4]);
     delete m;
 
     // Each cell has 1.0 * 1.0 dimensions and hence the total box dimensions will be 0.0 and 1.0 * numCellsPerDim
@@ -27,7 +29,14 @@ class Main: public CBase_Main {
 
     cellDim = 1.0;
 
-    CmiPrintf("NumCellsPerDim = %d\n", numCellsPerDim);
+    CkPrintf("================================ Input Params ===============================\n");
+    CkPrintf("====================== Particles In A Box Simulation ========================\n");
+    CkPrintf("Grid Size                                                  = %d X %d\n", numCellsPerDim, numCellsPerDim);
+    CkPrintf("Particles/Cell seed value                                  = %d\n", particlesPerCell);
+    CkPrintf("Number of Iterations                                       = %d\n", iterations);
+    CkPrintf("Load Balancing Frequency                                   = %d\n", lbFreq);
+    CkPrintf("=============================================================================\n");
+    CkPrintf("======================= Launching Particle Simulation =======================\n");
 
     //declare a 2D chare array with dimensions numCellsPerDim*numCellsPerDim
     CkArrayOptions opts(numCellsPerDim, numCellsPerDim);
@@ -51,7 +60,7 @@ class Main: public CBase_Main {
     int *output = (int *) data->getData();
     //CkAssert(output[2] == particlesPerCell*numCellsPerDim*numCellsPerDim);
     printTotal(output[0], output[1], output[2]);
-    if(output[2] == ITERATION) {
+    if(output[2] == iterations) {
       endTime = CkWallTimer();
       totalTime = (endTime - startTime);
       CkPrintf("Simulation Complete, total time taken is %lf seconds\n", totalTime);
@@ -98,7 +107,7 @@ class Main: public CBase_Main {
 
 
 // Global Functions
-CkReductionMsg *calculateTotalAndMax(int nMsg, CkReductionMsg **msgs) {
+CkReductionMsg *calculateTotalAndOutbound(int nMsg, CkReductionMsg **msgs) {
   int returnVal[3];
 
   //signifies total particles sum value
@@ -120,8 +129,8 @@ CkReductionMsg *calculateTotalAndMax(int nMsg, CkReductionMsg **msgs) {
   return CkReductionMsg::buildNew(3*sizeof(int),returnVal);
 }
 
-void registerCalculateTotalAndMax(void){
-  totalAndMaxType=CkReduction::addReducer(calculateTotalAndMax);
+void registerCalculateTotalAndOutbound(void){
+  totalAndMaxType=CkReduction::addReducer(calculateTotalAndOutbound);
 }
 
 #include "particleSimulation.def.h"

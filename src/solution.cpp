@@ -11,6 +11,8 @@ using namespace std;
 /*readonly*/ extern CProxy_Cell cellProxy;
 /*readonly*/ extern int particlesPerCell;
 /*readonly*/ extern int numCellsPerDim;
+/*readonly*/ extern int iterations;
+/*readonly*/ extern int lbFreq;
 /*readonly*/ extern double boxMax;
 /*readonly*/ extern double boxMin;
 /*readonly*/ extern double cellDim;

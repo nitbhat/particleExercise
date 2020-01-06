@@ -169,15 +169,15 @@ int Cell::getParticleStartId() {
 
 void Cell::reduceTotalAndMax() {
   numParticles=particles.size();
-  data[0]=numParticles;
+  data[0]= numParticles;
   data[1]= numOutbound;
-  data[2]=iteration;
-  CkCallback cbTotalAndMax(CkIndex_Main::receiveReductionData(NULL),mainProxy);
+  data[2]= iteration;
+  CkCallback cbTotalAndOutbound(CkIndex_Main::receiveReductionData(NULL),mainProxy);
 
   // Reset numOutbound value to 0 for the next iteration
   numOutbound = 0;
 
-  contribute(3*sizeof(int), data, totalAndMaxType, cbTotalAndMax);
+  contribute(3*sizeof(int), data, totalAndMaxType, cbTotalAndOutbound);
 }
 
 void Cell::sortAndDump(string subFolderName) {

@@ -1,4 +1,4 @@
-CHARM_HOME=/scratch/nitin/charm/mpi-linux-x86_64-prod/
+CHARM_HOME=/Users/nitinbhat/Work/software/charm/netlrts-darwin-x86_64-prod
 CHARMC=${CHARM_HOME}/bin/charmc $(OPTS)
 
 LIVEVIZ_RUN=0
@@ -14,32 +14,36 @@ MODE=solution
 
 all: particle
 
-OBJS = main.o $(MODE).o custom_rand_gen.o cell.o
+OBJS = obj/main.o obj/$(MODE).o obj/custom_rand_gen.o obj/cell.o
 
 N = 100
 K = 4
+ITER = 100
+LBFREQ = 5
 
-cifiles: particleSimulation.ci
-	$(CHARMC) particleSimulation.ci
-	touch cifiles
+obj/cifiles: src/particleSimulation.ci
+	$(CHARMC) src/particleSimulation.ci
+	mv particleSimulation.def.h src/particleSimulation.def.h
+	mv particleSimulation.decl.h src/particleSimulation.decl.h
+	touch obj/cifiles
 
-main.o: main.cpp cifiles main.h
-	$(CHARMC) -c main.cpp
+obj/main.o: src/main.cpp obj/cifiles src/main.h
+	$(CHARMC) -c src/main.cpp -o obj/main.o
 
-cell.o: cell.cpp cifiles cell.h
-	$(CHARMC) -c cell.cpp
+obj/cell.o: src/cell.cpp obj/cifiles src/cell.h
+	$(CHARMC) -c src/cell.cpp -o obj/cell.o
 
-$(MODE).o: $(MODE).cpp cifiles
-	$(CHARMC) -c $(MODE).cpp
+obj/$(MODE).o: src/$(MODE).cpp obj/cifiles
+	$(CHARMC) -c src/$(MODE).cpp -o obj/$(MODE).o
 
-custom_rand_gen.o: custom_rand_gen.c custom_rand_gen.h
-	$(CHARMC) -c custom_rand_gen.c
+obj/custom_rand_gen.o: src/custom_rand_gen.c src/custom_rand_gen.h
+	$(CHARMC) -c src/custom_rand_gen.c -o obj/custom_rand_gen.o
 
 particle: $(OBJS)
 	$(CHARMC) -O3 -language charm++ -o particle $(OBJS) -module CommonLBs
 
 clean:
-	rm -f *.decl.h *.def.h conv-host *.o particle charmrun cifiles
+	rm -f src/*.decl.h src/*.def.h conv-host *.o obj/*.o particle charmrun obj/cifiles
 
 outclean:
 	rm -rf ./output
@@ -48,7 +52,7 @@ cleanp:
 	rm -f *.sts *.gz *.projrc *.topo *.out
 
 test: all
-	./charmrun ./particle $(N) $(K) ++local +p4 $(TESTOPTS)
+	./charmrun ./particle $(N) $(K) $(ITER) $(LBFREQ) ++local +p4 $(TESTOPTS)
 
 testviz: all
-	./charmrun ./particle $(N) $(K) ++local +p4 ++server ++server-port 1234 $(TESTOPTS)
+	./charmrun ./particle $(N) $(K) $(ITER) $(LBFREQ) ++local +p4 ++server ++server-port 1234 $(TESTOPTS)
