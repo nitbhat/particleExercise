@@ -16,7 +16,6 @@ using namespace std;
 /*readonly*/ extern double boxMax;
 /*readonly*/ extern double boxMin;
 /*readonly*/ extern double cellDim;
-extern CkReduction::reducerType totalAndMaxType;
 
 #include "cell.h"
 #include "main.h"
