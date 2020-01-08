@@ -213,6 +213,8 @@ void Cell::sortAndDump(string subFolderName) {
       myFile << "Particle:"<< particles[i].gid <<","<<particles[i].x << "," << particles[i].y << "," << particles[i].color << endl;
     }
     myFile << "====================================== END ==========================================" << endl;
+  } else {
+    CmiAbort("Error while opening the file for writing cell output");
   }
   myFile.close();
 

@@ -38,6 +38,9 @@ Main::Main(CkArgMsg* m) {
 
   cellDim = 1.0;
 
+  minParticles = -1;
+  maxParticles = -1;
+
   CkPrintf("================================ Input Params ===============================\n");
   CkPrintf("====================== Particles In A Box Simulation ========================\n");
   CkPrintf("Grid Size                                                  = %d X %d\n", numCellsPerDim, numCellsPerDim);
@@ -99,8 +102,10 @@ void Main::readyToOutput() {
     char runOutputFolder[80];
     time_t t = time(0);
     struct tm *now = localtime(&t);
-    strftime(runOutputFolder, 80, "sim_output_%Y-%m-%d-%H-%M-%S", now);
 
+    string folderName=  "sim_output_%H-%M-%S-" + to_string(numCellsPerDim) +"-" + to_string(particlesPerCell) +"-" + to_string(iterations);
+
+    strftime(runOutputFolder, 80, folderName.c_str(), now);
     string name(runOutputFolder);
     string parentFolder("output/");
     string finalPath = parentFolder + name;
@@ -110,6 +115,31 @@ void Main::readyToOutput() {
     if (-1 == mkdirOut) {
       CmiAbort("Error while creating the output sub-directory");
     }
+
+    // Write the performance data in a file
+    string myFileName = finalPath + "/sim_output_main";
+
+    // Create a file
+    ofstream myFile;
+    myFile.open(myFileName);
+
+    if(myFile.is_open()) {
+      myFile << "====================================== BEGIN ==========================================" << endl;
+      myFile << "Main:" << endl;
+      myFile << "=======================================================================================" << endl;
+      myFile << "Input:Grid Size:" << numCellsPerDim << endl;
+      myFile << "Input:Particles Per Cell Seed:" << particlesPerCell << endl;
+      myFile << "Input:Number Of Iterations:" << iterations << endl;
+      myFile << "Output:Total Time:" << totalTime << endl;
+      myFile << "Output:Time Per Step:" << totalTime/iterations << endl;
+      myFile << "Output:Min Particles:" << maxParticles << endl;
+      myFile << "Output:Max Particles:" << minParticles << endl;
+      myFile << "====================================== END ==========================================" << endl;
+    } else {
+      CmiAbort("Error while opening the file for writing main output");
+    }
+
+    myFile.close();
 
     // Make each chare write to a file
     cellGrid.sortAndDump(finalPath);

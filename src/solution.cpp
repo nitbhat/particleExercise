@@ -131,11 +131,13 @@ void Cell::contributeToReduction() {
 
 void Main::computeMin(int min) {
   CmiPrintf("Minimum number of particles is %d\n", min);
+  minParticles = min;
   readyToOutput();
 }
 
 void Main::computeMax(int max) {
   CmiPrintf("Maximum number of particles is %d\n", max);
+  maxParticles = max;
   readyToOutput();
 }
 #endif

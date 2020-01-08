@@ -20,6 +20,8 @@ class Main: public CBase_Main {
 
   int counter, total;
 
+  int minParticles, maxParticles;
+
   public:
     Main(CkArgMsg* m);
 
