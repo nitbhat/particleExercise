@@ -11,6 +11,7 @@
 /*readonly*/ int numCellsPerDim;
 /*readonly*/ int iterations;
 /*readonly*/ int lbFreq;
+/*readonly*/ int reductionFreq;
 /*readonly*/ double boxMax;
 /*readonly*/ double boxMin;
 /*readonly*/ double cellDim;
@@ -40,6 +41,8 @@ Main::Main(CkArgMsg* m) {
 
   minParticles = -1;
   maxParticles = -1;
+
+  reductionFreq = 5;
 
   CkPrintf("================================ Input Params ===============================\n");
   CkPrintf("====================== Particles In A Box Simulation ========================\n");
