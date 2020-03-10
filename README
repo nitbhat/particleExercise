@@ -59,6 +59,10 @@ Bottom Right Neighbor   : (1,0)
 The simulation goes on for many iterations until completion which is reached after a certain number of
 iterations.
 
+Setup
+=======================================================
+#Downloading and installing charm and getting this program to run
+
 Coding Assignment
 =======================================================
 Your exercise is to add code for two functions. The main part of the exercise is to add code in
