@@ -15,12 +15,11 @@ using namespace std;
 
 class Main: public CBase_Main {
 
-  CProxy_Cell cellGrid;
   double startTime, endTime, totalTime;
 
-  int counter, total;
-
   int minParticles, maxParticles;
+  int minCellX, minCellY;
+  int maxCellX, maxCellY;
 
   public:
     Main(CkArgMsg* m);
@@ -35,6 +34,7 @@ class Main: public CBase_Main {
 #if BONUS_QUESTION
     void computeMin(int min);
     void computeMax(int max);
+    void receiveMinMaxReductionData(CkReductionMsg *data);
 #endif
 };
 

@@ -53,6 +53,10 @@ class Cell: public CBase_Cell {
     void mapChareToImage(liveVizRequestMsg *m);
 #endif
 
+#if BONUS_QUESTION
+    void contributeToReduction();
+#endif
+
   private:
     void populateCell(int initialElements);
     void perturb(Particle* particle);
@@ -78,9 +82,6 @@ class Cell: public CBase_Cell {
     int computeParticlesInCell();
     int getParticleStartId();
 
-#if BONUS_QUESTION
-    void contributeToReduction();
-#endif
 };
 
 #endif

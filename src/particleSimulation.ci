@@ -24,8 +24,7 @@ mainmodule particleSimulation {
     entry [reductiontarget] void done();
 
 #if BONUS_QUESTION
-    entry [reductiontarget] void computeMin(int min);
-    entry [reductiontarget] void computeMax(int max);
+    entry [reductiontarget] void receiveMinMaxReductionData(CkReductionMsg *data);
 #endif
   };
 
@@ -60,17 +59,15 @@ mainmodule particleSimulation {
             serial{ AtSync(); } when ResumeFromSync() {}
           }
       }//end of the iteration loop
-
-#if BONUS_QUESTION
-      serial {
-        contributeToReduction();
-      }
-#endif
     };
 
     entry void receiveUpdate(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     entry void ResumeFromSync();
     entry void sortAndDump(string subFolderName);
+
+#if BONUS_QUESTION
+    entry void contributeToReduction();
+#endif
 
 #if LIVEVIZ_RUN
     entry void mapChareToImage(liveVizRequestMsg *m);

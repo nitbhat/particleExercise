@@ -18,6 +18,8 @@ using namespace std;
 /*readonly*/ extern double boxMin;
 /*readonly*/ extern double cellDim;
 
+extern CkReduction::reducerType minMaxType;
+
 #include "cell.h"
 #include "main.h"
 #define DEBUG(x) //x
@@ -119,25 +121,77 @@ void Cell::updateParticles(int iter) {
 }
 
 #if BONUS_QUESTION
+void Main::receiveMinMaxReductionData(CkReductionMsg *data) {
+  int *output = (int *) data->getData();
+
+  maxParticles = output[0];
+  maxCellX = output[1];
+  maxCellY = output[2];
+
+  minParticles = output[3];
+  minCellX = output[4];
+  minCellY = output[5];
+
+  CmiPrintf("Max Particles:%d, Cell with Max Particles: (%d, %d)\n", maxParticles, maxCellX, maxCellY);
+  CmiPrintf("Min Particles:%d, Cell with Min Particles: (%d, %d)\n", minParticles, minCellX, minCellY);
+  readyToOutput();
+}
+
 void Cell::contributeToReduction() {
-  CkCallback minCb(CkReductionTarget(Main, computeMin), mainProxy);
-  CkCallback maxCb(CkReductionTarget(Main, computeMax), mainProxy);
+  numParticles = particles.size();
 
-  int size = particles.size();
+  int minMaxData[6];
 
-  contribute(sizeof(int), &size, CkReduction::min_int, minCb);
-  contribute(sizeof(int), &size, CkReduction::max_int, maxCb);
+  minMaxData[0] = numParticles;
+  minMaxData[1] = thisIndex.x;
+  minMaxData[2] = thisIndex.y;
+
+  minMaxData[3] = numParticles;
+  minMaxData[4] = thisIndex.x;
+  minMaxData[5] = thisIndex.y;
+
+  CkCallback cbMinMax(CkIndex_Main::receiveMinMaxReductionData(NULL), mainProxy);
+  contribute(6*sizeof(int), minMaxData, minMaxType, cbMinMax);
 }
 
-void Main::computeMin(int min) {
-  CmiPrintf("Minimum number of particles is %d\n", min);
-  minParticles = min;
-  readyToOutput();
-}
+CkReductionMsg *calculateMaxMin(int nMsg, CkReductionMsg **msgs) {
 
-void Main::computeMax(int max) {
-  CmiPrintf("Maximum number of particles is %d\n", max);
-  maxParticles = max;
-  readyToOutput();
+  int returnVal[6];
+
+  // signifies max value
+  returnVal[0] = -1;
+
+  // signifies x coordinate of the cell with max value
+  returnVal[1] = -1;
+
+  // signifies y coordinate of the cell with max value
+  returnVal[2] = -1;
+
+  // signifies min value
+  returnVal[3] = INT_MAX;
+
+  // signifies x coordinate of the cell with min value
+  returnVal[4] = -1;
+
+  // signifies y coordinate of the cell with min value
+  returnVal[5] = -1;
+
+  for (int i=0;i<nMsg;i++) {
+    CkAssert(msgs[i]->getSize()==6*sizeof(int));
+    int *m = (int *)msgs[i]->getData();
+
+    if(m[0] > returnVal[0]) {
+      returnVal[0] = m[0]; // Set the new max
+      returnVal[1] = m[1];
+      returnVal[2] = m[2];
+    }
+
+    if(m[3] < returnVal[3]) {
+      returnVal[3] = m[3]; // Set the new min
+      returnVal[4] = m[4];
+      returnVal[5] = m[5];
+    }
+  }
+  return CkReductionMsg::buildNew(6*sizeof(int),returnVal);
 }
 #endif

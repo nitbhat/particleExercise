@@ -39,20 +39,37 @@ void Cell::updateParticles(int iter) {
 }
 
 #if BONUS_QUESTION
+void Main::receiveMinMaxReductionData(CkReductionMsg *data) {
+  int *output = (int *) data->getData();
+
+  // TODO: Assign values to maxParticles, maxCellX, maxCellY, minParticles, minCellX, minCellY based
+  // on computed reduction values
+
+  CmiPrintf("Max Particles:%d, Cell with Max Particles: (%d, %d)\n", maxParticles, maxCellX, maxCellY);
+  CmiPrintf("Min Particles:%d, Cell with Min Particles: (%d, %d)\n", minParticles, minCellX, minCellY);
+  readyToOutput();
+}
+
+void Cell::contributeToReduction() {
+  numParticles = particles.size();
+
+  //TODO: Add code to contribute to reduction for finding the different custom reduction values
+  // Declare a callback with the function receiveMinMaxReductionData
+}
+
+CkReductionMsg *calculateMaxMin(int nMsg, CkReductionMsg **msgs) {
+  //TODO: Add code to compute the following:
+  // Value of the maximum particles per cell
+  // X coordinate of the cell with the maximum particles per cell
+  // Y coordinate of the cell with the maximum particles per cell
+  // Value of the minimum particles per cell
+  // X coordinate of the cell with the minimum particles per cell
+  // Y coordinate of the cell with the minimum particles per cell
+}
+
+
 void Cell::contributeToReduction() {
   //TODO: Add code to contribute to reduction for finding the minimum value of the number of particles
   //TODO: Add code to contribute to reduction for finding the maximum value of the number of particles
-}
-
-void Main::computeMin(int min) {
-  CmiPrintf("Minimum number of particles is %d\n", min);
-  minParticles = min;
-  readyToOutput();
-}
-
-void Main::computeMax(int max) {
-  CmiPrintf("Maximum number of particles is %d\n", max);
-  maxParticles = max;
-  readyToOutput();
 }
 #endif

@@ -22,6 +22,7 @@
 
 CkReduction::reducerType totalOutboundType;
 
+CkReduction::reducerType minMaxType;
 
 Main::Main(CkArgMsg* m) {
   if(m->argc < 5) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array> <numIterations> <load balancing Frequency>");
@@ -43,6 +44,12 @@ Main::Main(CkArgMsg* m) {
   minParticles = -1;
   maxParticles = -1;
 
+  minCellX = -1;
+  minCellY = -1;
+
+  maxCellX = -1;
+  maxCellY = -1;
+
   reductionFreq = 5;
 
   CkPrintf("================================ Input Params ===============================\n");
@@ -54,28 +61,22 @@ Main::Main(CkArgMsg* m) {
   CkPrintf("=============================================================================\n");
   CkPrintf("======================= Launching Particle Simulation =======================\n");
 
-  counter = 0;
-#if BONUS_QUESTION
-  total = 3;
-#else
-  total = 1;
-#endif
 
   //declare a 2D chare array with dimensions numCellsPerDim*numCellsPerDim
   CkArrayOptions opts(numCellsPerDim, numCellsPerDim);
-  cellGrid = CProxy_Cell::ckNew(opts);
+  cellProxy = CProxy_Cell::ckNew(opts);
 
 #if LIVEVIZ_RUN
   pixelScale  = 100.0;
-  CkCallback c(CkIndex_Cell::mapChareToImage(0), cellGrid);
+  CkCallback c(CkIndex_Cell::mapChareToImage(0), cellProxy);
   liveVizConfig cfg(liveVizConfig::pix_color, true);
-  liveVizInit(cfg, cellGrid, c, opts);
+  liveVizInit(cfg, cellProxy, c, opts);
 #endif
 
   startTime = CkWallTimer();
 
   //start the run for all the chares
-  cellGrid.run();
+  cellProxy.run();
 }
 
 //function to receive the reduction result
@@ -87,67 +88,75 @@ void Main::receiveTotalOutboundReductionData(CkReductionMsg *data){
     endTime = CkWallTimer();
     totalTime = (endTime - startTime);
     CkPrintf("Simulation Complete, total time taken is %lf seconds\n", totalTime);
+#if BONUS_QUESTION
+    // Broadcast everyone to contribute to bonus question reduction
+    cellProxy.contributeToReduction();
+#else
     readyToOutput();
+#endif
   }
 }
 
 void Main::readyToOutput() {
-  if(++counter == total) {
-
-    struct stat info;
-    if(stat("output", &info) != 0) {
-      // Create an output directory
-      const int mkdirOut = mkdir("output", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-      if (-1 == mkdirOut) {
-        CmiAbort("Error while creating the output directory");
-      }
-    }
-
-    char runOutputFolder[80];
-    time_t t = time(0);
-    struct tm *now = localtime(&t);
-
-    string folderName=  "sim_output_%H-%M-%S-" + to_string(numCellsPerDim) +"-" + to_string(particlesPerCell) +"-" + to_string(iterations);
-
-    strftime(runOutputFolder, 80, folderName.c_str(), now);
-    string name(runOutputFolder);
-    string parentFolder("output/");
-    string finalPath = parentFolder + name;
-
-    // Create an output subdirectory that is dependent on the current time
-    const int mkdirOut = mkdir(finalPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  struct stat info;
+  if(stat("output", &info) != 0) {
+    // Create an output directory
+    const int mkdirOut = mkdir("output", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if (-1 == mkdirOut) {
-      CmiAbort("Error while creating the output sub-directory");
+      CmiAbort("Error while creating the output directory");
     }
-
-    // Write the performance data in a file
-    string myFileName = finalPath + "/sim_output_main";
-
-    // Create a file
-    ofstream myFile;
-    myFile.open(myFileName);
-
-    if(myFile.is_open()) {
-      myFile << "====================================== BEGIN ==========================================" << endl;
-      myFile << "Main:" << endl;
-      myFile << "=======================================================================================" << endl;
-      myFile << "Input:Grid Size:" << numCellsPerDim << endl;
-      myFile << "Input:Particles Per Cell Seed:" << particlesPerCell << endl;
-      myFile << "Input:Number Of Iterations:" << iterations << endl;
-      myFile << "Output:Total Time:" << totalTime << endl;
-      myFile << "Output:Time Per Step:" << totalTime/iterations << endl;
-      myFile << "Output:Min Particles:" << maxParticles << endl;
-      myFile << "Output:Max Particles:" << minParticles << endl;
-      myFile << "====================================== END ==========================================" << endl;
-    } else {
-      CmiAbort("Error while opening the file for writing main output");
-    }
-
-    myFile.close();
-
-    // Make each chare write to a file
-    cellGrid.sortAndDump(finalPath);
   }
+
+  char runOutputFolder[80];
+
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+
+  time_t curtime = tv.tv_sec;
+  struct tm *now = localtime(&curtime);
+
+  string folderName=  "sim_output_%H-%M-%S-" + to_string(tv.tv_usec) + "-" + to_string(numCellsPerDim) +"-" + to_string(particlesPerCell) +"-" + to_string(iterations);
+
+  strftime(runOutputFolder, 80, folderName.c_str(), now);
+  string name(runOutputFolder);
+  string parentFolder("output/");
+  string finalPath = parentFolder + name;
+
+  // Create an output subdirectory that is dependent on the current time
+  const int mkdirOut = mkdir(finalPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  if (-1 == mkdirOut) {
+    CmiAbort("Error while creating the output sub-directory");
+  }
+
+  // Write the performance data in a file
+  string myFileName = finalPath + "/sim_output_main";
+
+  // Create a file
+  ofstream myFile;
+  myFile.open(myFileName);
+
+  if(myFile.is_open()) {
+    myFile << "====================================== BEGIN ==========================================" << endl;
+    myFile << "Main:" << endl;
+    myFile << "=======================================================================================" << endl;
+    myFile << "Input:Grid Size:" << numCellsPerDim << endl;
+    myFile << "Input:Particles Per Cell Seed:" << particlesPerCell << endl;
+    myFile << "Input:Number Of Iterations:" << iterations << endl;
+    myFile << "Output:Total Time:" << totalTime << endl;
+    myFile << "Output:Time Per Step:" << totalTime/iterations << endl;
+    myFile << "Output:Max Particles:" << maxParticles << endl;
+    myFile << "Output:Cell with Max Particles:" << "(" << maxCellX << "," << maxCellY << ")" << endl;
+    myFile << "Output:Min Particles:" << minParticles << endl;
+    myFile << "Output:Cell with Min Particles:" << "(" << minCellX << "," << minCellY << ")" << endl;
+    myFile << "====================================== END ==========================================" << endl;
+  } else {
+    CmiAbort("Error while opening the file for writing main output");
+  }
+
+  myFile.close();
+
+  // Make each chare write to a file
+  cellProxy.sortAndDump(finalPath);
 }
 
 void Main::done() {
@@ -183,8 +192,13 @@ CkReductionMsg *calculateTotalAndOutbound(int nMsg, CkReductionMsg **msgs) {
   return CkReductionMsg::buildNew(3*sizeof(int),returnVal);
 }
 
+CkReductionMsg *calculateMaxMin(int nMsg, CkReductionMsg **msgs);
+
 void registerCalculateTotalAndOutbound(void){
   totalOutboundType = CkReduction::addReducer(calculateTotalAndOutbound);
+#if BONUS_QUESTION
+  minMaxType = CkReduction::addReducer(calculateMaxMin);
+#endif
 }
 
 #include "particleSimulation.def.h"

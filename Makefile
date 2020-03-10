@@ -1,10 +1,14 @@
 CHARM_HOME=/Users/nitinbhat/Work/software/charm/netlrts-darwin-x86_64-prod
 CHARMC=${CHARM_HOME}/bin/charmc $(OPTS)
 
-BONUS_QUESTION=0 # Set to 1 to compile bonus question part 
-LIVEVIZ_RUN=0 # Set to 1 to turn on visualization
+BONUS_QUESTION=1# Set to 1 to compile bonus question part
+# make clean all after changing BONUS_QUESTION variable
+
+LIVEVIZ_RUN=0# Set to 1 to turn on visualization
 
 CHARMC=${CHARM_HOME}/bin/charmc
+
+#$(info $$BONUS_QUESTION is [${BONUS_QUESTION}])
 
 ifeq ($(LIVEVIZ_RUN), 1)
   CHARMC += -module liveViz -DLIVEVIZ_RUN=1
