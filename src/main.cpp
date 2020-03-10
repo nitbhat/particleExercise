@@ -20,7 +20,8 @@
 /*readonly*/ double pixelScale;
 #endif
 
-CkReduction::reducerType totalAndMaxType;
+CkReduction::reducerType totalOutboundType;
+
 
 Main::Main(CkArgMsg* m) {
   if(m->argc < 5) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array> <numIterations> <load balancing Frequency>");
@@ -78,7 +79,7 @@ Main::Main(CkArgMsg* m) {
 }
 
 //function to receive the reduction result
-void Main::receiveReductionData(CkReductionMsg *data){
+void Main::receiveTotalOutboundReductionData(CkReductionMsg *data){
   int *output = (int *) data->getData();
   //CkAssert(output[2] == particlesPerCell*numCellsPerDim*numCellsPerDim);
   printTotal(output[0], output[1], output[2]);
@@ -183,7 +184,7 @@ CkReductionMsg *calculateTotalAndOutbound(int nMsg, CkReductionMsg **msgs) {
 }
 
 void registerCalculateTotalAndOutbound(void){
-  totalAndMaxType=CkReduction::addReducer(calculateTotalAndOutbound);
+  totalOutboundType = CkReduction::addReducer(calculateTotalAndOutbound);
 }
 
 #include "particleSimulation.def.h"

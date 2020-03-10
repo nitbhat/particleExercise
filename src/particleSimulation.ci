@@ -20,7 +20,7 @@ mainmodule particleSimulation {
 
   mainchare Main {
     entry Main(CkArgMsg* m);
-    entry [reductiontarget] void receiveReductionData(CkReductionMsg *data);
+    entry [reductiontarget] void receiveTotalOutboundReductionData(CkReductionMsg *data);
     entry [reductiontarget] void done();
 
 #if BONUS_QUESTION

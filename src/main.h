@@ -26,7 +26,7 @@ class Main: public CBase_Main {
     Main(CkArgMsg* m);
 
     //function to receive the reduction result
-    void receiveReductionData(CkReductionMsg *data);
+    void receiveTotalOutboundReductionData(CkReductionMsg *data);
     void done();
     void printTotal(int total, int max, int iter);
 

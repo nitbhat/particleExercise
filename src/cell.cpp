@@ -16,7 +16,7 @@ extern double cellDim;
 extern double pixelScale;
 #endif
 
-extern CkReduction::reducerType totalAndMaxType;
+extern CkReduction::reducerType totalOutboundType;
 
 Cell::Cell() {
   DEBUG(CmiPrintf("[%d][%d] ******************** Constructor *********************\n", thisIndex.x, thisIndex.y);)
@@ -186,12 +186,12 @@ void Cell::reduceTotalAndMax() {
   data[0]= numParticles;
   data[1]= numOutbound;
   data[2]= iteration;
-  CkCallback cbTotalAndOutbound(CkIndex_Main::receiveReductionData(NULL),mainProxy);
+  CkCallback cbTotalAndOutbound(CkIndex_Main::receiveTotalOutboundReductionData(NULL),mainProxy);
 
   // Reset numOutbound value to 0 for the next iteration
   numOutbound = 0;
 
-  contribute(3*sizeof(int), data, totalAndMaxType, cbTotalAndOutbound);
+  contribute(3*sizeof(int), data, totalOutboundType, cbTotalAndOutbound);
 }
 
 void Cell::sortAndDump(string subFolderName) {
