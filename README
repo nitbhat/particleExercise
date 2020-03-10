@@ -1,0 +1,99 @@
+# particleSimulation
+
+Introduction
+=======================================================
+This code simulates a set of particles moving in a 2-dimensional space within a bounding box.
+The particles have (x,y) floating point coordinates and the entire bounding box is divided into
+a 2 dimensional grid of cells. Each cell size is considered to be 1 X 1, making it 100 X 100 for a
+simulation involving 100 cells in each dimension.
+
+For illustration, the image below shows the bounding box comprising of 5 cells in each dimension and
+their coordinates. In the code, the variable 'numCellsPerDim' represents the number of cells along each
+dimension of the bounding box.
+
+Each cell also has many particles that move around in a specific manner and in that process could go
+to the 8 neighboring cells, which are Top-Left, Top, Top-Right, Left, Right, Bottom-Left, Bottom, and Bottom-Right.
+
+____________________________________
+|      |      |      |      |      |
+|(0,0) |(0,1) |(0,2) |(0,3) |(0,4) |
+|______|______|______|______|______|
+|      |      |      |      |      |
+|(1,0) |(1,1) |(1,2) |(1,3) |(1,4) |
+|______|______|______|______|______|
+|      |      |      |      |      |
+|(2,0) |(2,1) |(2,2) |(2,3) |(2,4) |
+|______|______|______|______|______|
+|      |      |      |      |      |
+|(3,0) |(3,1) |(3,2) |(3,3) |(3,4) |
+|______|______|______|______|______|
+|      |      |      |      |      |
+|(4,0) |(4,1) |(4,2) |(4,3) |(4,4) |
+|______|______|______|______|______|
+
+
+The bounding box (i.e. the simulation space) is wrapped around, i.e. all the edge cells and corner cells loop
+back along each edge and corner.
+
+For example, cell (4,2) will have the following neighbors:
+Top Left Neighbor       : (3,1)
+Top Neighbor            : (3,2)
+Top Right Neighbor      : (3,3)
+Left Neighbor           : (4,1)
+Right Neighbor          : (4,3)
+Bottom Left Neighbor    : (0,1)
+Bottom Neighbor         : (0,2)
+Bottom Right Neighbor   : (0,3)
+
+
+Similarly, cell (0,4) will have the following neighbors:
+Top Left Neighbor       : (4,3)
+Top Neighbor            : (4,4)
+Top Right Neighbor      : (4,0)
+Left Neighbor           : (0,3)
+Right Neighbor          : (0,0)
+Bottom Left Neighbor    : (1,3)
+Bottom Neighbor         : (1,4)
+Bottom Right Neighbor   : (1,0)
+
+The simulation goes on for many iterations until completion which is reached after a certain number of
+iterations.
+
+Coding Assignment
+=======================================================
+Your exercise is to add code for two functions. The main part of the exercise is to add code in
+Cell::updateParticles. The bonus part of the exercise is to add code in Cell::contributeToReduction.
+
+Main exercise
+=======================================================
+The Cell::updateParticles function is called for each cell in the grid. It is called for each iteration of the
+simulation to perform the following functionalities:
+1. Move(or Perturb) the particles
+2. Determine the cell location of the newly moved particles i.e. determine if the particle still belongs to me or
+   does it belong to one of my 8 neighboring cells.
+3. Sending particles that belong to my neighboring cells using the Cell::sendParticles function.
+
+Your assignment is to add code into Cell::updateParticles in the file src/exercise.cpp to add the functionalities
+described above.
+
+
+Bonus exercise
+=======================================================
+The Cell::contributeToReduction function is called for each cell in the grid. It is called at the end of the
+simulation i.e. after all iterations, to perform two reduction operations:
+1. A reduction operation to compute the cell with the maximum number of particles
+  (and compute the value of the maximum number of particles)
+
+2. A reduction operation to compute the cell with the minimum number of particles
+  (and compute the value of the minimum number of particles)
+
+
+Your assignment is to add code into Cell::contributeToReduction in the file src/exercise.cpp to add two
+contribute calls for performing charm++ reductions, one for a reduction to determine the maximum value
+and another to determine the minimum value.
+
+
+
+
+
+

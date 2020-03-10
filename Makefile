@@ -1,8 +1,8 @@
 CHARM_HOME=/Users/nitinbhat/Work/software/charm/netlrts-darwin-x86_64-prod
 CHARMC=${CHARM_HOME}/bin/charmc $(OPTS)
 
-BONUS_QUESTION=0
-LIVEVIZ_RUN=0
+BONUS_QUESTION=0 # Set to 1 to compile bonus question part 
+LIVEVIZ_RUN=0 # Set to 1 to turn on visualization
 
 CHARMC=${CHARM_HOME}/bin/charmc
 
