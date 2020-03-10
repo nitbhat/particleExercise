@@ -6,7 +6,10 @@
 
 #Set compareDir to the directory that contains the verified output of the application
 #The output submitted by the students will be compared against this output
+
 compareDir="/Users/nitinbhat/Work/software/particleSimulation/scripts/compareOutput/"
+resultDir="/Users/nitinbhat/Work/software/particleSimulation/scripts/resultDirs/"
+
 inputTar=$1
 
 if [[ -z "$inputTar" ]]; then
@@ -19,8 +22,22 @@ if [[ ! -f "$inputTar" ]]; then
   exit 1
 fi
 
-tar -xvf $inputTar
-inputDir=`ls -td -- */ | head -n 1`
+if [[ ! -d "$compareDir" ]]; then
+  echo "Comparison directory $compareDir does not exist!"
+  exit 1
+fi
+
+if [[ ! -d "$resultDir" ]]; then
+  echo "Results directory $resultDir does not exist!"
+  exit 1
+fi
+
+tar -xvf $inputTar -C $resultDir
+inputDir=`ls -tdu -- $resultDir/* | head -n 1`
+
+#echo "DEBUG: Compare dir is $compareDir"
+#echo "DEBUG: Input tar is $inputTar"
+#echo "DEBUG: Input dir is $inputDir"
 
 declare -a compareOutput
 declare -a compareInput
@@ -43,24 +60,22 @@ function parse_main_output {
       outputArr+=(${BASH_REMATCH[1]})
     elif [[ $line =~ ^Output:Time.*:([0-9]+\.[0-9]+) ]]; then
       outputArr+=(${BASH_REMATCH[1]})
-    elif [[ $line =~ ^Output:Min.*:([0-9]+) ]]; then
+    elif [[ $line =~ ^Output:Min.*:(-?[0-9]+) ]]; then
       outputArr+=(${BASH_REMATCH[1]})
-    elif [[ $line =~ ^Output:Max.*:([0-9]+) ]]; then
+    elif [[ $line =~ ^Output:Max.*:(-?[0-9]+) ]]; then
       outputArr+=(${BASH_REMATCH[1]})
+    elif [[ $line =~ ^Output:Cell.*Min.*:\((-?[0-9]+),(-?[0-9]+)\) ]]; then
+      outputArr+=(${BASH_REMATCH[1]})
+      outputArr+=(${BASH_REMATCH[2]})
+    elif [[ $line =~ ^Output:Cell.*Max.*:\((-?[0-9]+),(-?[0-9]+)\) ]]; then
+      outputArr+=(${BASH_REMATCH[1]})
+      outputArr+=(${BASH_REMATCH[2]})
     fi
   done <"$file"
 }
 
 mv $inputDir/sim_output_main ./sim_output_main_input
 mv $compareDir/sim_output_main ./sim_output_main_compare
-
-diffResult=`diff -rq $inputDir $compareDir`
-
-if [[ -z "$diffResult" ]]; then
-  echo "Particle Output is correct!"
-else
-  echo "Particle Output is incorrect!"
-fi
 
 parse_main_output ./sim_output_main_compare
 compareOutput=("${outputArr[@]}")
@@ -74,37 +89,75 @@ evalInput=("${inputArr[@]}")
 
 lastIndex="$((${#evalInput[@]}-1))"
 
+#echo "DEBUG: compare output is ${compareOutput[*]}"
+#echo "DEBUG: eval output is ${evalOutput[*]}"
+
 #check correctness of inputs
 for i in $(seq 0 $lastIndex);
   do
     if [ ${compareInput[$i]} -ne ${evalInput[$i]} ]; then
-      echo "Inputs are not same! Eval:${evalInput[$i]} Compare:${compareInput[$i]} ";
+      echo "ERROR !!!!!!!!!!!!!!!!! Inputs are not same! Eval:${evalInput[$i]} Compare:${compareInput[$i]} ";
       exit 1
     fi
 done
 
+diffResult=`diff -rq $inputDir $compareDir`
+
+echo "=========================================================================================";
+if [[ -z "$diffResult" ]]; then
+  echo "SUCCESS **************** Particle Output is correct!"
+else
+  echo "ERROR !!!!!!!!!!!!!!!!! Particle Output is incorrect!"
+fi
+
+echo "=========================================================================================";
+if [ ${evalOutput[5]} -eq -1 ]; then
+  echo "WARNING &&&&&&&&&&&&&&&&&  Minimum Bonus Question not answered!";
+else
+  if [ ${evalOutput[5]} -ne ${compareOutput[5]} ]; then
+    echo "ERROR !!!!!!!!!!!!!!!!! Minimum Bonus Question answered but incorrect!";
+  else
+    echo "SUCCESS **************** Minimum Bonus Question answered - Min value correct";
+    if [ ${evalOutput[6]} -ne ${compareOutput[6]} ]; then
+      echo "ERROR !!!!!!!!!!!!!!!!! Minimum Bonus Question - Min Cell X coordinate incorrect";
+    else
+      echo "SUCCESS **************** Minimum Bonus Question - Min Cell X coordinate correct";
+      if [ ${evalOutput[7]} -ne ${compareOutput[7]} ]; then
+        echo "ERROR !!!!!!!!!!!!!!!!! Minimum Bonus Question - Min Cell Y coordinate incorrect";
+      else
+        echo "SUCCESS **************** Minimum Bonus Question - Min Cell Y coordinate correct";
+      fi
+    fi
+  fi
+fi
+
+echo "=========================================================================================";
 if [ ${evalOutput[2]} -eq -1 ]; then
-  echo "Minimum Bonus Question not answered!";
+  echo "WARNING &&&&&&&&&&&&&&&&&  Maximum Bonus Question not answered!";
 else
   if [ ${evalOutput[2]} -ne ${compareOutput[2]} ]; then
-    echo "Minimum Bonus Question answered but incorrect!";
+    echo "ERROR !!!!!!!!!!!!!!!!! Maximum Bonus Question answered but incorrect!";
   else
-    echo "Minimum Bonus Question answered and correct!";
+    echo "SUCCESS **************** Maximum Bonus Question answered - Max value correct";
+    if [ ${evalOutput[3]} -ne ${compareOutput[3]} ]; then
+      echo "ERROR !!!!!!!!!!!!!!!!! Maximum Bonus Question - Max Cell X coordinate incorrect";
+    else
+      echo "SUCCESS **************** Maximum Bonus Question - Max Cell X coordinate correct";
+      if [ ${evalOutput[4]} -ne ${compareOutput[4]} ]; then
+        echo "ERROR !!!!!!!!!!!!!!!!! Maximum Bonus Question - Max Cell Y coordinate incorrect";
+      else
+        echo "SUCCESS **************** Maximum Bonus Question - Max Cell Y coordinate correct";
+      fi
+    fi
   fi
 fi
 
-if [ ${evalOutput[3]} -eq -1 ]; then
-  echo "Maximum Bonus Question not answered!";
-else
-  if [ ${evalOutput[3]} -ne ${compareOutput[3]} ]; then
-    echo "Maximum Bonus Question answered but incorrect!";
-  else
-    echo "Maximum Bonus Question answered and correct!";
-  fi
-fi
+echo "=========================================================================================";
+echo "Total Application Time                                                ${evalOutput[0]}";
+echo "=========================================================================================";
+echo "Total Application Time Per Step                                       ${evalOutput[1]}";
+echo "=========================================================================================";
 
-echo "Total Application Time:${evalOutput[0]}";
-echo "Total Application Time Per Step:${evalOutput[1]}";
-
+#Reset back files
 mv ./sim_output_main_compare $compareDir/sim_output_main
 mv ./sim_output_main_input $inputDir/sim_output_main
