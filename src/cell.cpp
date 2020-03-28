@@ -188,9 +188,6 @@ void Cell::reduceTotalAndMax() {
   data[2]= iteration;
   CkCallback cbTotalAndOutbound(CkIndex_Main::receiveTotalOutboundReductionData(NULL),mainProxy);
 
-  // Reset numOutbound value to 0 for the next iteration
-  numOutbound = 0;
-
   contribute(3*sizeof(int), data, totalOutboundType, cbTotalAndOutbound);
 }
 

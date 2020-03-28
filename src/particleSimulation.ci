@@ -38,6 +38,9 @@ mainmodule particleSimulation {
       for(iteration=1; iteration<=iterations; iteration++){
 
           serial{
+            // Reset numOutbound value to 0 for the next iteration
+            numOutbound = 0;
+
             // Allow the particles to move around
             updateParticles(iteration);
           }
