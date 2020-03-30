@@ -41,7 +41,7 @@ void Cell::updateParticles(int iter) {
 
   DEBUG(CmiPrintf("[%d][%d] ============================= update particles beginning ITER: %d=======\n", thisIndex.x, thisIndex.y, iter);)
 
-  for(int i=particles.size()-1;i>=0; i--){
+  for(int i=particles.size()-1;i>=0; i--) {
 
     //change the position of the particle
     perturb(&particles[i]);
@@ -50,57 +50,41 @@ void Cell::updateParticles(int iter) {
     double yPos = particles[i].y;
 
     //find the cell the particle belongs
-    //condition for shifting to top-left cell
-    if(xPos < startX && yPos < startY){
-      topLeft.push_back(particles[i]);
+    if(xPos < startX) {
+      if(yPos < startY) { //condition for shifting to top-left cell
+        topLeft.push_back(particles[i]);
+      } else if(yPos > endY) { //condition for shifting to bottom-left cell
+        bottomLeft.push_back(particles[i]);
+      } else { //condition for shifting to left cell
+        left.push_back(particles[i]);
+      }
       swap(particles[i], particles[swapIndex--]);
     }
-
-    //condition for shifting to top cell
-    else if(xPos > startX && xPos < endX && yPos < startY){
-      top.push_back(particles[i]);
+    else if(xPos > endX) {
+      if(yPos < startY) { //condition for shifting to top-right cell
+        topRight.push_back(particles[i]);
+      } else if(yPos > endY) { //condition for shifting to bottom-right cell
+        bottomRight.push_back(particles[i]);
+      } else { //condition for shifting to right cell
+        right.push_back(particles[i]);
+      }
       swap(particles[i], particles[swapIndex--]);
-    }
-
-    //condition for shifting to top-right cell
-    else if(xPos > endX && yPos < startY){
-      topRight.push_back(particles[i]);
-      swap(particles[i], particles[swapIndex--]);
-    }
-
-    //condition for shifting to left cell
-    else if(xPos < startX && yPos > startY && yPos < endY){
-      left.push_back(particles[i]);
-      swap(particles[i], particles[swapIndex--]);
-    }
-
-    //condition for shifting to right cell
-    else if(xPos > endX && yPos > startY && yPos < endY) {
-      right.push_back(particles[i]);
-      swap(particles[i], particles[swapIndex--]);
-    }
-
-    //condition for shifting to bottom-left cell
-    else if(xPos < startX && yPos > endY){
-      bottomLeft.push_back(particles[i]);
-      swap(particles[i], particles[swapIndex--]);
-    }
-
-    //condition for shifting to bottom cell
-    else if(xPos > startX && xPos < endX && yPos > endY){
-      bottom.push_back(particles[i]);
-      swap(particles[i], particles[swapIndex--]);
-    }
-
-    //condition for shifting to bottom-right cell
-    else if(xPos > endX && yPos > endY){
-      bottomRight.push_back(particles[i]);
-      swap(particles[i], particles[swapIndex--]);
+    } else {
+      if(yPos < startY) { //condition for shifting to top cell
+        top.push_back(particles[i]);
+        swap(particles[i], particles[swapIndex--]);
+      } else if(yPos > endY) {  //condition for shifting to bottom cell
+        bottom.push_back(particles[i]);
+        swap(particles[i], particles[swapIndex--]);
+      } else { //condition for doing nothing, particle is in my cell
+        continue;
+      }
     }
   }
 
-  DEBUG(CmiPrintf("[%d][%d] ============================= update particles end ITER: %d=======\n", thisIndex.x, thisIndex.y, iter);)
   particles.resize(swapIndex+1);
+
+  DEBUG(CmiPrintf("[%d][%d] ============================= update particles end ITER: %d=======\n", thisIndex.x, thisIndex.y, iter);)
 
   int myX = thisIndex.x;
   int myY = thisIndex.y;
