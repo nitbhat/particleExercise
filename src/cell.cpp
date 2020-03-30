@@ -91,41 +91,25 @@ void Cell::addParticlesOfColor(int num, char c, int &startId){
 //which particle to go which neighbour chare
 //e.g. the right neighbour of chare indexed[k-1,0] is chare [0,0]
 void Cell::perturb(Particle* particle) {
-  //custom_drand48 creates a random number between [0-1]
-  //double deltax = (custom_drand48()-custom_drand48())*10;
-  //double deltay = (custom_drand48()-custom_drand48())*10;
-
-  double dx = (particle->x - startX);
-  double dy = (particle->y - startY);
-
-  assert(dx >= 0 && dx <= 1);
-  assert(dy >= 0 && dy <= 1);
-
-  //if(dy > 1)
-  //   CmiPrintf("[%d][%d] Particle Y (%d) coordinate %lf is greater than 1 doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, particle->gid, particle->y, startY, endY);
-
-  //if(dy < 0)
-  //   CmiPrintf("[%d][%d] Particle Y(%d) coordinate %lf is lesser than 0 doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, particle->gid, particle->y, startY, endY);
-
-  double deltax = tanh(particle->x - startX);
-  double deltay = tanh(particle->y - startY);
-
-  assert(deltax >= -1 && deltax <= 1);
-  assert(deltay >= -1 && deltay <= 1);
 
   //CmiPrintf("[%d][%d] deltax, deltay [%lf, %lf]\n", thisIndex.x, thisIndex.y, deltax, deltay);
+
+  double deltax = cos(particle->y);
+  double deltay = cos(particle->x);
+  assert(deltax >= -1 && deltax <= 1);
+  assert(deltay >= -1 && deltay <= 1);
 
   if(particle->color=='r'){
     particle->x += deltax/velocityFactor; // don't modify x coordinate
     particle->y += deltay/velocityFactor;         // moves up by 0.3
   }
   else if(particle->color=='b'){
-    particle->x -= deltax/(velocityFactor * 2);         // moves left by 0.1
+    particle->x += deltax/(velocityFactor * 2);         // moves left by 0.1
     particle->y += deltay/(velocityFactor * 2);         // moves down by 0.2
   }
   else if(particle->color=='g'){
     particle->x += deltax/(velocityFactor * 5);         // moves right by 0.2
-    particle->y -= deltay/(velocityFactor * 5);         // moves top by 0.1
+    particle->y += deltay/(velocityFactor * 5);         // moves top by 0.1
   }
 }
 
