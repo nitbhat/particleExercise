@@ -11,6 +11,9 @@ mainmodule particleSimulation {
   readonly double boxMax;
   readonly double boxMin;
   readonly double cellDim;
+  readonly int velocityFactor;
+  readonly vector<int> particleRatio;
+
 
 #if LIVEVIZ_RUN
   readonly double pixelScale;

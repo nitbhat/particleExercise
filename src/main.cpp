@@ -15,6 +15,8 @@
 /*readonly*/ double boxMax;
 /*readonly*/ double boxMin;
 /*readonly*/ double cellDim;
+/*readonly*/ int velocityFactor;
+/*readonly*/ vector<int> particleRatio;
 
 #if LIVEVIZ_RUN
 /*readonly*/ double pixelScale;
@@ -25,14 +27,29 @@ CkReduction::reducerType totalOutboundType;
 CkReduction::reducerType minMaxType;
 
 Main::Main(CkArgMsg* m) {
-  if(m->argc < 5) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array> <numIterations> <load balancing Frequency>");
+  if(m->argc < 7) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array> <numIterations> <lower, upper, diag, box> <vel-factor> <load balancing Frequency>");
 
   mainProxy = thisProxy;
   particlesPerCell = atoi(m->argv[1]);
   numCellsPerDim = atoi(m->argv[2]);
   iterations = atoi(m->argv[3]);
-  lbFreq = atoi(m->argv[4]);
+  string particleRatioStr(m->argv[4]);
+  velocityFactor = atoi(m->argv[5]);
+  lbFreq = atoi(m->argv[6]);
   delete m;
+
+  stringstream ss(particleRatioStr);
+
+  for (int i; ss >> i;) {
+    assert(i >= 0);
+    particleRatio.push_back(i);
+    if (ss.peek() == ',')
+      ss.ignore();
+  }
+
+  if(particleRatio.size() != 4)
+    CkAbort("Particle ratio input incorrect! Pass particle ratio input as a comma seprated string <upper, lower, diag, box>");
+
 
   // Each cell has 1.0 * 1.0 dimensions and hence the total box dimensions will be 0.0 and 1.0 * numCellsPerDim
   // declare box dimensions
@@ -57,6 +74,11 @@ Main::Main(CkArgMsg* m) {
   CkPrintf("Grid Size                                                  = %d X %d\n", numCellsPerDim, numCellsPerDim);
   CkPrintf("Particles/Cell seed value                                  = %d\n", particlesPerCell);
   CkPrintf("Number of Iterations                                       = %d\n", iterations);
+  CkPrintf("Green Particles (Lower Triangular Half) distribution ratio = %d\n", particleRatio[0]);
+  CkPrintf("Blue Particles  (Upper Triangular Half) distribution ratio = %d\n", particleRatio[1]);
+  CkPrintf("Red Particles   (Diagonal) distribution ratio              = %d\n", particleRatio[2]);
+  CkPrintf("Red Particles   (Central Box) distribution ratio           = %d\n", particleRatio[3]);
+  CkPrintf("Velocity Reduction Factor                                  = %d\n", velocityFactor);
   CkPrintf("Load Balancing Frequency                                   = %d\n", lbFreq);
   CkPrintf("=============================================================================\n");
   CkPrintf("======================= Launching Particle Simulation =======================\n");

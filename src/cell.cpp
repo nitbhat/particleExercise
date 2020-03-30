@@ -11,6 +11,9 @@ extern int numCellsPerDim;
 extern double boxMax;
 extern double boxMin;
 extern double cellDim;
+extern int velocityFactor;
+extern vector<int> particleRatio;
+
 
 #if LIVEVIZ_RUN
 extern double pixelScale;
@@ -44,27 +47,27 @@ void Cell::populateCell(int initialElements) {
   int startId = getParticleStartId();
 
   DEBUG(CmiPrintf("[%d][%d] Populating Cell and start id is %d=======\n", thisIndex.x, thisIndex.y, startId);)
+
+  //lower half-green particles to be added
+  if(thisIndex.x < thisIndex.y)
+    addParticlesOfColor(particleRatio[0] * initialElements,'g', startId);
+
+  //upper half-blue particles to be added
+  if(thisIndex.x > thisIndex.y)
+    addParticlesOfColor(particleRatio[1] * initialElements,'b', startId);
+
   //along the diagonal
-  if(thisIndex.x==thisIndex.y){
-    addParticlesOfColor(initialElements,'b', startId);
-    addParticlesOfColor(initialElements,'g', startId);
+  if(thisIndex.x == thisIndex.y){
+    addParticlesOfColor(particleRatio[2] * initialElements,'r', startId);
   }
-
-  //lower half-blue particles to be added
-  if(thisIndex.x<thisIndex.y)
-    addParticlesOfColor(initialElements,'b', startId);
-
-  //upper half-green particles to be added
-  if(thisIndex.x>thisIndex.y)
-    addParticlesOfColor(initialElements,'g', startId);
 
   int redBoxMin = (numCellsPerDim-(numCellsPerDim/4))/2;
 
   //condition for adding red particles
-  if(thisIndex.x>=redBoxMin && thisIndex.x<redBoxMin+(numCellsPerDim/4) && thisIndex.y>=redBoxMin && thisIndex.y<redBoxMin +(numCellsPerDim/4))
-    addParticlesOfColor(2*initialElements,'r', startId);
+  if(thisIndex.x >= redBoxMin && thisIndex.x < redBoxMin+(numCellsPerDim/4) && thisIndex.y >= redBoxMin && thisIndex.y < redBoxMin +(numCellsPerDim/4))
+    addParticlesOfColor(particleRatio[3] * initialElements,'r', startId);
 
-  DEBUG(CmiPrintf("[%d][%d] ============================= Added %d particles =======\n", thisIndex.x, thisIndex.y, computeParticlesInCell());)
+  DEBUG(CmiPrintf("[%d][%d] ============== Added %d particles and end id is %d =======\n", thisIndex.x, thisIndex.y, computeParticlesInCell(), startId);)
 }
 
 void Cell::addParticlesOfColor(int num, char c, int &startId){
@@ -92,17 +95,37 @@ void Cell::perturb(Particle* particle) {
   //double deltax = (custom_drand48()-custom_drand48())*10;
   //double deltay = (custom_drand48()-custom_drand48())*10;
 
+  double dx = (particle->x - startX);
+  double dy = (particle->y - startY);
+
+  assert(dx >= 0 && dx <= 1);
+  assert(dy >= 0 && dy <= 1);
+
+  //if(dy > 1)
+  //   CmiPrintf("[%d][%d] Particle Y (%d) coordinate %lf is greater than 1 doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, particle->gid, particle->y, startY, endY);
+
+  //if(dy < 0)
+  //   CmiPrintf("[%d][%d] Particle Y(%d) coordinate %lf is lesser than 0 doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, particle->gid, particle->y, startY, endY);
+
+  double deltax = tanh(particle->x - startX);
+  double deltay = tanh(particle->y - startY);
+
+  assert(deltax >= -1 && deltax <= 1);
+  assert(deltay >= -1 && deltay <= 1);
+
+  //CmiPrintf("[%d][%d] deltax, deltay [%lf, %lf]\n", thisIndex.x, thisIndex.y, deltax, deltay);
+
   if(particle->color=='r'){
-    particle->x = particle->x; // don't modify x coordinate
-    particle->y += 0.3;         // moves up by 0.3
+    particle->x += deltax/velocityFactor; // don't modify x coordinate
+    particle->y += deltay/velocityFactor;         // moves up by 0.3
   }
   else if(particle->color=='b'){
-    particle->x -= 0.1;         // moves left by 0.1
-    particle->y -= 0.2;         // moves down by 0.2
+    particle->x -= deltax/(velocityFactor * 2);         // moves left by 0.1
+    particle->y += deltay/(velocityFactor * 2);         // moves down by 0.2
   }
   else if(particle->color=='g'){
-    particle->x += 0.2;         // moves right by 0.2
-    particle->y += 0.1;         // moves top by 0.1
+    particle->x += deltax/(velocityFactor * 5);         // moves right by 0.2
+    particle->y -= deltay/(velocityFactor * 5);         // moves top by 0.1
   }
 }
 
@@ -146,23 +169,25 @@ void Cell::updateNeighbor(int iter, std::vector<Particle> incoming, int senderX,
 int Cell::computeParticlesInCell(int cellX, int cellY) {
   int numParticles = 0;
 
-  //along the diagonal
-  if(cellX==cellY){
-    numParticles += 2*(particlesPerCell);
-  }
+  //lower half-green particles to be added
+  if(cellX < cellY)
+    numParticles += particleRatio[0] * particlesPerCell;
 
-  //lower half-blue or upper half-green
-  else if(cellX < cellY || cellX > cellY)
-    numParticles += particlesPerCell;
+  //upper half-blue particles to be added
+  if(cellX > cellY)
+    numParticles += particleRatio[1] * particlesPerCell;
+
+  //along the diagonal
+  if(cellX == cellY)
+    numParticles += particleRatio[2] * particlesPerCell;
 
   int redBoxMin = (numCellsPerDim-(numCellsPerDim/4))/2;
 
   //condition for adding red particles
-  if(cellX>=redBoxMin && cellX<redBoxMin+(numCellsPerDim/4) && cellY>=redBoxMin && cellY<redBoxMin +(numCellsPerDim/4))
-    numParticles += 2*particlesPerCell;
+  if(cellX >= redBoxMin && cellX < redBoxMin+(numCellsPerDim/4) && cellY >= redBoxMin && cellY < redBoxMin +(numCellsPerDim/4))
+    numParticles += particleRatio[3] * particlesPerCell;
 
   return numParticles;
-
 }
 int Cell::computeParticlesInCell() {
   return computeParticlesInCell(thisIndex.x, thisIndex.y);
