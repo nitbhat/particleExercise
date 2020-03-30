@@ -35,7 +35,7 @@ K = 4
 ITER = 100
 LBFREQ = 5
 PARTICLEDIST = 1,2,3,10
-VELFACT = 1
+VELFACT = 100
 
 obj/cifiles: src/particleSimulation.ci
 	$(CHARMC) src/particleSimulation.ci
