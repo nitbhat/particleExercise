@@ -1,6 +1,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 #include <string>
+#include <assert.h>
 using namespace std;
 
 #if LIVEVIZ_RUN

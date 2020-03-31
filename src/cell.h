@@ -5,6 +5,7 @@
 #include <vector>
 #include "pup_stl.h"
 #include <string>
+#include <assert.h>
 using namespace std;
 #include "particle.h"
 

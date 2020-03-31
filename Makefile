@@ -35,7 +35,7 @@ K = 4
 ITER = 100
 LBFREQ = 5
 PARTICLEDIST = 1,2,3,10
-VELFACT = 100
+VELFACT = 5
 
 obj/cifiles: src/particleSimulation.ci
 	$(CHARMC) src/particleSimulation.ci
@@ -71,4 +71,4 @@ test: all
 	./charmrun ./particle $(N) $(K) $(ITER) $(PARTICLEDIST) $(VELFACT) $(LBFREQ) ++local +p4 $(TESTOPTS)
 
 testviz: all
-	./charmrun ./particle 10000 10 100000 $(PARTICLEDIST) $(VELFACT) $(LBFREQ) ++local +p4 ++server ++server-port 1234 $(TESTOPTS)
+	./charmrun ./particle 10000 10 100000 $(PARTICLEDIST) 100 $(LBFREQ) ++local +p4 ++server ++server-port 1234 $(TESTOPTS)

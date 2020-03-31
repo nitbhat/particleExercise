@@ -1,4 +1,5 @@
 #include <string>
+#include <limits.h>
 using namespace std;
 
 #if LIVEVIZ_RUN
