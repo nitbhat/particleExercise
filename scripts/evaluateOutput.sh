@@ -7,20 +7,37 @@
 #Set compareDir to the directory that contains the verified output of the application
 #The output submitted by the students will be compared against this output
 
-compareDir="/Users/nitinbhat/Work/software/particleSimulation/scripts/compareOutput/"
-resultDir="/Users/nitinbhat/Work/software/particleSimulation/scripts/resultDirs/"
-
 inputTar=$1
 
 if [[ -z "$inputTar" ]]; then
-  echo "Tar file value not passed in the first parameter! Usage: ./evaluateOutput.sh <path-to-tar-file>";
+  echo "Tar file value not passed in the first parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type>";
   exit 1
 fi
+
 
 if [[ ! -f "$inputTar" ]]; then
   echo "Tar file $inputTar does not exist!"
   exit 1
 fi
+
+simType=$2
+
+if [[ -z "$simType" ]]; then
+  echo "Input type not passed in the second parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type>";
+  exit 1
+fi
+
+echo "Input type is ----$simType----"
+
+
+if [[ "$simType" != "simple" && "$simType" != "bench" ]]; then
+  echo "Input type should be either \"simple\" (make test output) or \"bench\" (make test-bench output)";
+  exit 1
+fi
+
+compareDir="/Users/nitinbhat/Work/software/particleSimulation/scripts/compareOutput/$simType/"
+resultDir="/Users/nitinbhat/Work/software/particleSimulation/scripts/resultDirs/"
+
 
 if [[ ! -d "$compareDir" ]]; then
   echo "Comparison directory $compareDir does not exist!"

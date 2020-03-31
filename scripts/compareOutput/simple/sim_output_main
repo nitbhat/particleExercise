@@ -1,0 +1,15 @@
+====================================== BEGIN ==========================================
+Main:
+=======================================================================================
+Input:Grid Size:4
+Input:Particles Per Cell Seed:100
+Input:Number Of Iterations:100
+Input:Particle Ratio:1,2,3,10
+Input:Velocity Factor:5
+Output:Total Time:0.0704097
+Output:Time Per Step:0.000704097
+Output:Max Particles:595
+Output:Cell with Max Particles:(3,3)
+Output:Min Particles:42
+Output:Cell with Min Particles:(3,1)
+====================================== END ==========================================
