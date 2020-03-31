@@ -164,6 +164,9 @@ void Main::readyToOutput() {
     myFile << "Input:Grid Size:" << numCellsPerDim << endl;
     myFile << "Input:Particles Per Cell Seed:" << particlesPerCell << endl;
     myFile << "Input:Number Of Iterations:" << iterations << endl;
+    myFile << "Input:Particle Ratio:" << particleRatio[0] << "," << particleRatio[1] << ",";
+    myFile << particleRatio[2] << "," << particleRatio[3] << endl;
+    myFile << "Input:Velocity Factor:" << velocityFactor << endl;
     myFile << "Output:Total Time:" << totalTime << endl;
     myFile << "Output:Time Per Step:" << totalTime/iterations << endl;
     myFile << "Output:Max Particles:" << maxParticles << endl;

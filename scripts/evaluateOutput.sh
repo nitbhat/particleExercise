@@ -56,6 +56,13 @@ function parse_main_output {
       inputArr+=(${BASH_REMATCH[1]})
     elif [[ $line =~ ^Input:Number.*:([0-9]+) ]]; then
       inputArr+=(${BASH_REMATCH[1]})
+    elif [[ $line =~ ^Input:Particle.*:([0-9]+),([0-9]+),([0-9]+),([0-9]+) ]]; then
+      inputArr+=(${BASH_REMATCH[1]})
+      inputArr+=(${BASH_REMATCH[2]})
+      inputArr+=(${BASH_REMATCH[3]})
+      inputArr+=(${BASH_REMATCH[4]})
+    elif [[ $line =~ ^Input:Velocity.*:([0-9]+) ]]; then
+      inputArr+=(${BASH_REMATCH[1]})
     elif [[ $line =~ ^Output:Total.*:([0-9]+\.[0-9]+) ]]; then
       outputArr+=(${BASH_REMATCH[1]})
     elif [[ $line =~ ^Output:Time.*:([0-9]+\.[0-9]+) ]]; then
@@ -91,6 +98,9 @@ lastIndex="$((${#evalInput[@]}-1))"
 
 #echo "DEBUG: compare output is ${compareOutput[*]}"
 #echo "DEBUG: eval output is ${evalOutput[*]}"
+
+#echo "DEBUG: compare input is ${compareInput[*]}"
+#echo "DEBUG: eval input is ${evalInput[*]}"
 
 #check correctness of inputs
 for i in $(seq 0 $lastIndex);
