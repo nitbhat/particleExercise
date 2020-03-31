@@ -10,7 +10,7 @@
 inputTar=$1
 
 if [[ -z "$inputTar" ]]; then
-  echo "Tar file value not passed in the first parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type>";
+  echo "Tar file value not passed in the first parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type> <base-directory>";
   exit 1
 fi
 
@@ -23,29 +23,36 @@ fi
 simType=$2
 
 if [[ -z "$simType" ]]; then
-  echo "Input type not passed in the second parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type>";
+  echo "Input type not passed in the second parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type> <base-directory>";
   exit 1
 fi
-
-echo "Input type is ----$simType----"
-
 
 if [[ "$simType" != "simple" && "$simType" != "bench" ]]; then
   echo "Input type should be either \"simple\" (make test output) or \"bench\" (make test-bench output)";
   exit 1
 fi
 
-compareDir="/Users/nitinbhat/Work/software/particleSimulation/scripts/compareOutput/$simType/"
-resultDir="/Users/nitinbhat/Work/software/particleSimulation/scripts/resultDirs/"
+baseDir=$3
 
-
-if [[ ! -d "$compareDir" ]]; then
-  echo "Comparison directory $compareDir does not exist!"
+if [[ -z "$baseDir" ]]; then
+  echo "Base directory not passed in the third parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type> <base-directory>";
   exit 1
 fi
 
+if [[ ! -d "$baseDir" ]]; then
+  echo "Base directory $baseDir does not exist!"
+  exit 1
+fi
+
+resultDir="$baseDir/scripts/resultDir/"
 if [[ ! -d "$resultDir" ]]; then
   echo "Results directory $resultDir does not exist!"
+  exit 1
+fi
+
+compareDir="$baseDir/scripts/compareOutput/$simType/"
+if [ ! -d "$compareDir" ]; then
+  echo "comparison directory $compareDir does not exist!"
   exit 1
 fi
 
@@ -53,6 +60,7 @@ tar -xvf $inputTar -C $resultDir
 inputDir=`ls -tdu -- $resultDir/* | head -n 1`
 
 #echo "DEBUG: Compare dir is $compareDir"
+#echo "DEBUG: Result dir is $resultDir"
 #echo "DEBUG: Input tar is $inputTar"
 #echo "DEBUG: Input dir is $inputDir"
 
