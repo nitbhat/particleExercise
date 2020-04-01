@@ -70,7 +70,10 @@ cleanp:
 	rm -f *.sts *.gz *.projrc *.topo *.out
 
 test: all
-	./charmrun ./particle $(N) $(K) $(ITER) $(PARTICLEDIST) $(VELFACT) $(OUTPUTPROMPT) $(LBFREQ) +p4 $(TESTOPTS)
+	./charmrun +p4 ./particle $(N) $(K) $(ITER) $(PARTICLEDIST) $(VELFACT) $(OUTPUTPROMPT) $(LBFREQ) $(TESTOPTS)
+
+testbench: all
+	./charmrun +p128 ./particle 10000 35 1000 1,2,30,10 5 yes $(LBFREQ) $(TESTOPTS)
 
 testviz: all
-	./charmrun ./particle 10000 10 100000 $(PARTICLEDIST) 100 $(OUTPUTPROMPT) $(LBFREQ) +p4 ++server ++server-port 1234 $(TESTOPTS)
+	./charmrun +p4 ./particle 10000 10 100000 $(PARTICLEDIST) 100 $(OUTPUTPROMPT) $(LBFREQ) ++server ++server-port 1234 $(TESTOPTS)
