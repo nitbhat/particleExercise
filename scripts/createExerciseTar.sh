@@ -1,22 +1,34 @@
-#!/bin/bash
+#/bin/bash
 #=====================================================================================
 # Script creates a tar file folderName.tar.gz which will be passed on to the students
 #=====================================================================================
 
-#Set particleSimDir to the home directory of particleSimulation
-particleSimDir="/Users/nitinbhat/Work/software/particleSimulation"
+baseDir=$1
+if [[ -z "$baseDir" ]]; then
+  echo "Base directory not passed in the first parameter! Usage: ./createExerciseTar.sh <base-directory> <name-of-tar-file>";
+  exit 1
+fi
+
+if [[ ! -d "$baseDir" ]]; then
+  echo "Base directory $baseDir does not exist!"
+  exit 1
+fi
+
 folderName="charm-exercise"
 
-cd $particleSimDir
+cd $baseDir
 pwd
 make clean
 mkdir $folderName
 
-cp ./README.md ./$folderName
+cp ./README ./$folderName
 cp ./Makefile ./$folderName
 cp -r ./img ./$folderName
 cp -r ./src ./$folderName
-mkdir $folderName/obj $folderName/output
+mkdir $folderName/obj $folderName/output $folderName/scripts
+cp ./scripts/evaluateOutput.sh $folderName/scripts
+cp -r ./scripts/compareOutput $folderName/scripts/
+rm -rf $folderName/src/solution.cpp                                 #Remove solution.cpp
 
 tar -czvf $folderName.tar.gz ./$folderName
 rm -rf ./$folderName
