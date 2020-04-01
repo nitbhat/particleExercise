@@ -22,6 +22,9 @@ class Main: public CBase_Main {
   int minCellX, minCellY;
   int maxCellX, maxCellY;
 
+  bool outputPrompt;
+  string finalPath;
+
   public:
     Main(CkArgMsg* m);
 
@@ -31,6 +34,8 @@ class Main: public CBase_Main {
     void printTotal(int total, int max, int iter);
 
     void readyToOutput();
+    bool getUserInput();
+    string getDefaultSubdirectoryName();
 
 #if BONUS_QUESTION
     void computeMin(int min);

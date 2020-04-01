@@ -27,7 +27,7 @@ CkReduction::reducerType totalOutboundType;
 CkReduction::reducerType minMaxType;
 
 Main::Main(CkArgMsg* m) {
-  if(m->argc < 7) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array> <numIterations> <lower, upper, diag, box> <vel-factor> <load balancing Frequency>");
+  if(m->argc < 8) CkAbort("USAGE: ./charmrun +p<number_of_processors> ./particle <number of particles per cell> <size of array> <numIterations> <lower, upper, diag, box> <vel-factor> <output-prompt> <load balancing Frequency>");
 
   mainProxy = thisProxy;
   particlesPerCell = atoi(m->argv[1]);
@@ -35,7 +35,8 @@ Main::Main(CkArgMsg* m) {
   iterations = atoi(m->argv[3]);
   string particleRatioStr(m->argv[4]);
   velocityFactor = atoi(m->argv[5]);
-  lbFreq = atoi(m->argv[6]);
+  string outputPromptString(m->argv[6]);
+  lbFreq = atoi(m->argv[7]);
   delete m;
 
   stringstream ss(particleRatioStr);
@@ -50,6 +51,13 @@ Main::Main(CkArgMsg* m) {
   if(particleRatio.size() != 4)
     CkAbort("Particle ratio input incorrect! Pass particle ratio input as a comma seprated string <upper, lower, diag, box>");
 
+  if (outputPromptString == "yes") {
+    outputPrompt = true;
+  } else if(outputPromptString == "no") {
+    outputPrompt = false;
+  } else {
+    CkAbort("output-prompt incorrect! Pass either \"yes\" or \"no\"");
+  }
 
   // Each cell has 1.0 * 1.0 dimensions and hence the total box dimensions will be 0.0 and 1.0 * numCellsPerDim
   // declare box dimensions
@@ -79,6 +87,7 @@ Main::Main(CkArgMsg* m) {
   CkPrintf("Red Particles   (Diagonal) distribution ratio              = %d\n", particleRatio[2]);
   CkPrintf("Red Particles   (Central Box) distribution ratio           = %d\n", particleRatio[3]);
   CkPrintf("Velocity Reduction Factor                                  = %d\n", velocityFactor);
+  CkPrintf("Output Prompt                                              = %d\n", outputPrompt);
   CkPrintf("Load Balancing Frequency                                   = %d\n", lbFreq);
   CkPrintf("=============================================================================\n");
   CkPrintf("======================= Launching Particle Simulation =======================\n");
@@ -109,6 +118,7 @@ void Main::receiveTotalOutboundReductionData(CkReductionMsg *data){
   if(output[2] == iterations) {
     endTime = CkWallTimer();
     totalTime = (endTime - startTime);
+    CkPrintf("======================= Particle Simulation Complete ========================\n");
     CkPrintf("Simulation Complete, total time taken is %lf seconds\n", totalTime);
 #if BONUS_QUESTION
     // Broadcast everyone to contribute to bonus question reduction
@@ -117,6 +127,36 @@ void Main::receiveTotalOutboundReductionData(CkReductionMsg *data){
     readyToOutput();
 #endif
   }
+}
+
+bool Main::getUserInput() {
+  char writeToFile[20];
+  CmiPrintf("Do you want to log the final output data? (yes/no) :");
+  CkScanf("%s", writeToFile);
+  string userInputPrompt(writeToFile);
+
+  if (userInputPrompt == "yes") {
+    return true;
+  } else if(userInputPrompt == "no") {
+    return false;
+  } else {
+    CmiPrintf("User Input incorrect! Try again, Pass either \"yes\" or \"no\"\n");
+    return getUserInput();
+  }
+}
+
+string Main::getDefaultSubdirectoryName() {
+  char runOutputFolder[80];
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+
+  time_t curtime = tv.tv_sec;
+  struct tm *now = localtime(&curtime);
+  string folderName = "sim_output_%H-%M-%S-" + to_string(tv.tv_usec) + "-" + to_string(numCellsPerDim) +"-" + to_string(particlesPerCell) +"-" + to_string(iterations);
+
+  strftime(runOutputFolder, 80, folderName.c_str(), now);
+  string name(runOutputFolder);
+  return name;
 }
 
 void Main::readyToOutput() {
@@ -129,20 +169,22 @@ void Main::readyToOutput() {
     }
   }
 
-  char runOutputFolder[80];
+  char userRunOutputFolder[80];
+  bool logFinal = true;
+  string folderName;
 
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
+  if(outputPrompt) {
+    logFinal = getUserInput();
+    if(logFinal == false) {
+      CkPrintf("Not writing output to files, Exiting program\n");
+      CkExit(); // Program ends
+    }
+  }
 
-  time_t curtime = tv.tv_sec;
-  struct tm *now = localtime(&curtime);
+  folderName = getDefaultSubdirectoryName();
 
-  string folderName=  "sim_output_%H-%M-%S-" + to_string(tv.tv_usec) + "-" + to_string(numCellsPerDim) +"-" + to_string(particlesPerCell) +"-" + to_string(iterations);
-
-  strftime(runOutputFolder, 80, folderName.c_str(), now);
-  string name(runOutputFolder);
   string parentFolder("output/");
-  string finalPath = parentFolder + name;
+  finalPath = parentFolder + folderName;
 
   // Create an output subdirectory that is dependent on the current time
   const int mkdirOut = mkdir(finalPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -185,7 +227,8 @@ void Main::readyToOutput() {
 }
 
 void Main::done() {
-  CkPrintf("All output has been written to files, Exiting program\n");
+  CkPrintf("All output has been written to files in directory : %s\n", finalPath.c_str());
+  CkPrintf("Exiting program\n");
   CkExit();
 }
 

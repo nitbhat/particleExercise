@@ -5,6 +5,7 @@ BONUS_QUESTION=1# Set to 1 to compile bonus question part
 # make clean all after changing BONUS_QUESTION variable
 
 LIVEVIZ_RUN=0# Set to 1 to turn on visualization
+# make clean all after changing LIVEVIZ_RUN variable
 
 CHARMC=${CHARM_HOME}/bin/charmc
 
@@ -36,6 +37,7 @@ ITER = 100
 LBFREQ = 5
 PARTICLEDIST = 1,2,3,10
 VELFACT = 5
+OUTPUTPROMPT=no
 
 obj/cifiles: src/particleSimulation.ci
 	$(CHARMC) src/particleSimulation.ci
@@ -68,7 +70,7 @@ cleanp:
 	rm -f *.sts *.gz *.projrc *.topo *.out
 
 test: all
-	./charmrun ./particle $(N) $(K) $(ITER) $(PARTICLEDIST) $(VELFACT) $(LBFREQ) ++local +p4 $(TESTOPTS)
+	./charmrun ./particle $(N) $(K) $(ITER) $(PARTICLEDIST) $(VELFACT) $(OUTPUTPROMPT) $(LBFREQ) +p4 $(TESTOPTS)
 
 testviz: all
-	./charmrun ./particle 10000 10 100000 $(PARTICLEDIST) 100 $(LBFREQ) ++local +p4 ++server ++server-port 1234 $(TESTOPTS)
+	./charmrun ./particle 10000 10 100000 $(PARTICLEDIST) 100 $(OUTPUTPROMPT) $(LBFREQ) +p4 ++server ++server-port 1234 $(TESTOPTS)
