@@ -53,8 +53,9 @@ void Main::receiveMinMaxReductionData(CkReductionMsg *data) {
 void Cell::contributeToReduction() {
   numParticles = particles.size();
 
-  //TODO: Add code to contribute to reduction for finding the different custom reduction values
-  // Declare a callback with the function receiveMinMaxReductionData
+  // TODO: Declare a callback with the function receiveMinMaxReductionData
+  // Add code to contribute to reduction for finding the different custom reduction values using the callback
+  // declared above
 }
 
 CkReductionMsg *calculateMaxMin(int nMsg, CkReductionMsg **msgs) {
@@ -65,11 +66,5 @@ CkReductionMsg *calculateMaxMin(int nMsg, CkReductionMsg **msgs) {
   // Value of the minimum particles per cell
   // X coordinate of the cell with the minimum particles per cell
   // Y coordinate of the cell with the minimum particles per cell
-}
-
-
-void Cell::contributeToReduction() {
-  //TODO: Add code to contribute to reduction for finding the minimum value of the number of particles
-  //TODO: Add code to contribute to reduction for finding the maximum value of the number of particles
 }
 #endif

@@ -1,19 +1,43 @@
 # particleSimulation
 
-Introduction
-=======================================================
-This code simulates a set of particles moving in a 2-dimensional space within a bounding box.
-The particles have (x,y) floating point coordinates and the entire bounding box is divided into
-a 2 dimensional grid of cells. Each cell size is considered to be 1 X 1, making it 100 X 100 for a
-simulation involving 100 cells in each dimension.
 
+=======================================================
+Charm++ Introduction
+=======================================================
+Charm++ is a C++-based parallel programming system, founded on the migratable-objects programming model,
+and supported by a novel and powerful adaptive runtime system. It supports both irregular as well as
+regular applications, and can be used to specify task-parallelism as well as data parallelism in a single
+application. It automates dynamic load balancing for task-parallel as well as data-parallel applications,
+via separate suites of load-balancing strategies. Via its message-driven execution model, it supports
+automatic latency tolerance, modularity and parallel composition. Charm++ also supports automatic
+checkpoint/restart, as well as fault tolerance based on distributed checkpoints.
+
+Charm++ is a production-quality parallel programming system used by multiple applications in science
+and engineering on supercomputers as well as smaller clusters around the world. Currently the parallel
+platforms supported by Charm++ are the IBM BlueGene/Q and OpenPOWER systems, Cray XE, XK, and XC systems,
+Omni-Path and Infiniband clusters, single workstations and networks of workstations (including x86
+(running Linux, Windows, MacOS)), etc. The communication protocols and infrastructures supported by
+Charm++ are UDP, MPI, OFI, UCX, Infiniband, uGNI, and PAMI. Charm++ programs can run without changing
+the source on all these platforms. Notable Charm++ applications that are regularly run on leading supercomputers
+across the world are NAMD (molecular dynamics), ChaNGa (n-body cosmological simulations), Episimdemics
+(contagion in social networks) and OpenAtom (Ab initio Molecular Dynamics) among many others.
+
+
+
+=======================================================
+Particle Simulation Introduction
+=======================================================
+The particle simulation is written using the Charm++ parallel programming model and it simulates a set
+of particles moving in a 2-dimensional space within a bounding box. The bounding box is divided into a
+two dimensional grid of cells. The particles moving around in the bounding box have (x,y) floating point
+coordinates and belong to one of the cells based on their coordinates. In each cell, the particles are stored
+as a vector. The size of each cell is 1 X 1, making it n X n for a simulation involving n cells in each dimension.
 For illustration, the image below shows the bounding box comprising of 5 cells in each dimension and
 their coordinates. In the code, the variable 'numCellsPerDim' represents the number of cells along each
 dimension of the bounding box.
 
 Each cell also has many particles that move around in a specific manner and in that process could go
 to the 8 neighboring cells, which are Top-Left, Top, Top-Right, Left, Right, Bottom-Left, Bottom, and Bottom-Right.
-
 ____________________________________
 |      |      |      |      |      |
 |(0,0) |(0,1) |(0,2) |(0,3) |(0,4) |
@@ -56,48 +80,279 @@ Bottom Left Neighbor    : (1,3)
 Bottom Neighbor         : (1,4)
 Bottom Right Neighbor   : (1,0)
 
-The simulation goes on for many iterations until completion which is reached after a certain number of
-iterations.
 
-Setup
-=======================================================
-#Downloading and installing charm and getting this program to run
+The simulation takes the following input parameters
+Grid Size (Creates a grid of cells of Grid Size X Grid Size, same asthe 'n' parameter explained above)
+Particles per cell seed value
+Number of Iterations
+Green Particles (Lower Triangular Half) distribution ratio
+Blue Particles (Upper Triangular Half) distribution ratio
+Red Particles (Diagonal) distribution ratio
+Red Particles (Central Box) distribution ratio
+Velocity Reduction Factor
+Output Prompt
+Load Balancing Frequency
 
-Coding Assignment
-=======================================================
-Your exercise is to add code for two functions. The main part of the exercise is to add code in
-Cell::updateParticles. The bonus part of the exercise is to add code in Cell::contributeToReduction.
+The simulation consists of three types of particles: Green, Blue and Red. Green particles are added to the
+lower triangular half of the bounding box. Blue particles are added to the upper triangular half of the
+bounding box. Red particles are added to the diagonal and a central box in the middle of the bounding box.
+The particle color plays a role in affecting the speed of the particle ( Red > Blue > Green).
 
-Main exercise
+The distribution ratios are used to populate the bounding box with the particles before the beginning of
+simulation. The velociy reduction factor is used to slow the speed of particles by a constant factor.
+
+The output prompt (accepts 'yes' or 'no') determines if user intervention is required for writing the output
+to files. Setting it to 'yes' will give the user a choice at the end of the simulation asking if the output
+has to be written to files. Setting it to 'no' will cause the program to write the output to files, without
+asking the user. Setting the parameter to 'yes' is useful for large runs where File I/O could take up a long
+time. In such cases, users will be able to control writing to files and can choose to do so only if the
+performance numbers look good. It is important to note that the time for taken for writing the output to
+files, is not counted in the total simulation time and hence, will not affect your score.
+
+The load balancing frequency is the number of iterations for which load balancing occurs in the runtime system.
+During load balancing, parallel objects are migrated from the overloaded processors to the underloaded
+processes. For this assignment, it is a tunable parameter to get better performance from the application.
+Note that for load balancing frequency to play a part in the application, '+balancer <load-balancer-name>'
+should be passed to the application.
+
+In the particle simulation, the simulation begins after the initial population of cells with particles based
+on the particle distribution ratios. Particles move in a pre-defined manner (when you call the perturb function).
+Based on the particle's new position, it is your responsibility to determine if the particle is still in the
+same cell or if it has to be transferred to one of the adjacent cells. In the case of the particle not
+belonging to the same cell, you need to send the particle to the new cell, where it belongs.
+For each iteration, every particle in each cell is moved (perturbed) and then, the cell sends 8 messages to
+8 of its neighboring cells (TL, T, TR, L, R, BL, B, BR, as explained above). After sending the 8 messages,
+each cell waits for 8 incoming messages from its neighbors, consisting of particles that belong to it.
+These new particles that belong to the cell are added to the existing particles of the cell.
+Note that, it is your task to only move and send the particles (the 8 outgoing messages) to 8 neighboring
+cells. The already written skeleton code takes care of waiting for the 8 incoming messages and adding them
+to the cell.
+
+This process of moving the particle, sending 8 outgoing messages and waiting for 8 incoming messages is
+repeated for every cell, for every iteration of the simulation. The simulation completes when the ongoing count
+of iterations reaches the total number of iterations.
+
+
+
 =======================================================
+Charm++ Setup
+=======================================================
+1. Download the latest Charm++ release
+$ wget https://charm.cs.illinois.edu/distrib/charm-latest.tar.gz
+$ tar xzf charm-latest.tar.gz
+
+
+2. Build charm++ using a suitable machine layer (or networking layer)
+- On a commodity ethernet cluster, use the netlrts build. For proprietary networks, use the appropriate machine
+layer (Eg - gni for Cray gemini interconnect, pami for IBM pami interconnect, ucx for Infiniband, ofi for
+Intel Omnipath). Since charm has a MPI backend, optionally, you can also build Charm++ with an MPI backend and
+compare its performance against the native machine layer.
+
+- Consider using the '--with-production' flag for the best optimizations.
+$ ./build charm++ <mach-layer>-linux-x86_64 --with-production -j4
+
+- Build with the smp mode to take advantage of shared memory optimizations
+$ ./build charm++ <mach-layer>-linux-x86_64 smp -j4
+
+Some example build commands
+$ cd charm
+$ ./build charm++ mpi-linux-x86_64 smp --with-production -j4
+$ ./build charm++ netlrts-linux-x86_64 --with-production -j4
+$ ./build charm++ gni-crayxc smp --with-production -j4
+$ ./build charm++ netlrts-darwin-x86_64 smp --with-production -j4
+Refer https://charm.readthedocs.io/en/latest/charm++/manual.html#installing-charm for more information
+on building Charm++
+
+
+3. After building successfully, try a simple program like tests/charm++/simplearrayhello to ensure that
+programs run successfully.
+
+$ MacBook-Pro-37:simplearrayhello nitinbhat$ make test
+$ ../../../bin/charmc   hello.ci
+$ ../../../bin/charmc  -c hello.C
+$ ../../../bin/charmc  -language charm++ -o hello hello.o
+$ ../../../bin/testrun  ./hello +p4 10
+$ Charmrun> scalable start enabled.
+$ Warning: No xauth data; using fake authentication data for X11 forwarding.
+$ X11 forwarding request failed on channel 1
+$ Charmrun> started all node programs in 1.147 seconds.
+$ Charm++> Running in non-SMP mode: 4 processes (PEs)
+$ Converse/Charm++ Commit ID: v6.10.1-0-gcc60a79
+$ Charm++> scheduler running in netpoll mode.
+$ CharmLB> Load balancer assumes all CPUs are same.
+$ Charm++> Running on 1 hosts (1 sockets x 4 cores x 2 PUs = 8-way SMP)
+$ Charm++> cpu topology info is gathered in 0.001 seconds.
+$ Running Hello on 4 processors for 10 elements
+$ [0] Hello 0 created
+$ [0] Hello 1 created
+$ [0] Hello 2 created
+$ [0] Hi[17] from element 0
+$ [0] Hi[18] from element 1
+$ [0] Hi[19] from element 2
+$ [2] Hello 6 created
+$ [2] Hello 7 created
+$ [3] Hello 8 created
+$ [3] Hello 9 created
+$ [1] Hello 3 created
+$ [1] Hello 4 created
+$ [1] Hello 5 created
+$ [1] Hi[20] from element 3
+$ [1] Hi[21] from element 4
+$ [1] Hi[22] from element 5
+$ [2] Hi[23] from element 6
+$ [2] Hi[24] from element 7
+$ [3] Hi[25] from element 8
+$ [3] Hi[26] from element 9
+$ All done
+$ [Partition 0][Node 0] End of program
+$
+$ real	0m1.184s
+$ user	0m0.015s
+$ sys	0m0.016s
+
+
+
+=======================================================
+Coding Assignment (Particle Simulation) Setup
+=======================================================
+1. Untar the charm-exercise.tar.gz that will be provided to you
+
+$ MacBook-Pro-37:~ nitinbhat$ tar -xvf charm-exercise.tar.gz
+$ x ./charm-exercise/
+$ x ./charm-exercise/obj/
+$ x ./charm-exercise/Makefile
+$ x ./charm-exercise/output/
+$ x ./charm-exercise/README
+$ x ./charm-exercise/img/
+$ x ./charm-exercise/scripts/
+$ x ./charm-exercise/src/
+$ x ./charm-exercise/src/main.h
+$ x ./charm-exercise/src/particleSimulation.ci
+$ x ./charm-exercise/src/cell.h
+$ x ./charm-exercise/src/.exercise.cpp.swp
+$ x ./charm-exercise/src/custom_rand_gen.h
+$ x ./charm-exercise/src/cell.cpp
+$ x ./charm-exercise/src/exercise.cpp
+$ x ./charm-exercise/src/.gitignore
+$ x ./charm-exercise/src/particle.h
+$ x ./charm-exercise/src/custom_rand_gen.c
+$ x ./charm-exercise/src/main.cpp
+$ x ./charm-exercise/scripts/evaluateOutput.sh
+$ x ./charm-exercise/scripts/compareOutput/
+$ x ./charm-exercise/scripts/compareOutput/simple/
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_3_1
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_1_2
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_main
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_1_3
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_3_0
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_0_1
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_2_2
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_2_3
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_0_0
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_3_2
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_1_1
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_1_0
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_3_3
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_0_2
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_2_1
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_2_0
+$ x ./charm-exercise/scripts/compareOutput/simple/sim_output_0_3
+$ x ./charm-exercise/img/._bounding_box.png
+$ x ./charm-exercise/img/bounding_box.png
+
+
+2. cd into charm-exercise (the recently tar-ed folder) and set CHARM_HOME in the Makefile to
+point to your charm installation directory
+
+$ CHARM_HOME=/Users/nitinbhat/Work/software/charm/netlrts-darwin-x86_64-prod
+
+3. Run 'make test' to ensure that all files compile and the executable is launched. The program
+will hang because Cell::updateParticles(int iter) is empty currently (and requires you to code
+the remaining parts).
+
+$ MacBook-Pro-37:charm-exercise nitinbhat$ make test
+$ ./charmrun +p4 ./particle 100 4 100 1,2,3,10 5 no 5
+$ Charmrun> scalable start enabled.
+$ Warning: No xauth data; using fake authentication data for X11 forwarding.
+$ X11 forwarding request failed on channel 1
+$ Charmrun> started all node programs in 1.139 seconds.
+$ Charm++> Running in non-SMP mode: 4 processes (PEs)
+$ Converse/Charm++ Commit ID: v6.10.1-0-gcc60a79
+$ Charm++> scheduler running in netpoll mode.
+$ CharmLB> Load balancer assumes all CPUs are same.
+$ Charm++> Running on 1 hosts (1 sockets x 4 cores x 2 PUs = 8-way SMP)
+$ Charm++> cpu topology info is gathered in 0.001 seconds.
+$ ================================ Input Params ===============================
+$ ====================== Particles In A Box Simulation ========================
+$ Grid Size                                                  = 4 X 4
+$ Particles/Cell seed value                                  = 100
+$ Number of Iterations                                       = 100
+$ Green Particles (Lower Triangular Half) distribution ratio = 1
+$ Blue Particles  (Upper Triangular Half) distribution ratio = 2
+$ Red Particles   (Diagonal) distribution ratio              = 3
+$ Red Particles   (Central Box) distribution ratio           = 10
+$ Velocity Reduction Factor                                  = 5
+$ Output Prompt                                              = 0
+$ Load Balancing Frequency                                   = 5
+$ =============================================================================
+$ ======================= Launching Particle Simulation =======================
+
+
+
+=======================================================
+Coding Assignment Task
+=======================================================
+Your exercise is to add code for two functions.
+
+The main part of the exercise is to add code in Cell::updateParticles.
+
+The bonus part of the exercise is to add code in Cell::contributeToReduction, Main::receiveMinMaxReductionData,
+and global function:calculateMaxMin. For this part, you would need to understand how custom reduction functions
+are written in Charm++ in order to write the reduction function for calculating the min value, the min cell
+indices, the max value, and the max cell indices.
+
+Main exercise:
 The Cell::updateParticles function is called for each cell in the grid. It is called for each iteration of the
 simulation to perform the following functionalities:
 1. Move(or Perturb) the particles
 2. Determine the cell location of the newly moved particles i.e. determine if the particle still belongs to me or
    does it belong to one of my 8 neighboring cells.
-3. Sending particles that belong to my neighboring cells using the Cell::sendParticles function.
+3. Make sure that particles that go outside the bounding box are wrapped back, as explained in the Particle
+   Simulation Introduction section of this README
+4. Send particles that belong to my neighboring cells using the Cell::sendParticles function.
 
 Your assignment is to add code into Cell::updateParticles in the file src/exercise.cpp to add the functionalities
-described above.
+described above. It is important to note that sendParticles is called 8 times to send outgoing messages to
+the 8 adjacent cells or neighbors, since they are waiting on messages from all their neighbors. Failing to send
+messages to the neighbors will cause a hang.
 
+Bonus exercise:
+Understand custom reductions from the manual
+(Refer https://charm.readthedocs.io/en/latest/charm++/manual.html#defining-a-new-reduction-type).
 
-Bonus exercise
-=======================================================
 The Cell::contributeToReduction function is called for each cell in the grid. It is called at the end of the
-simulation i.e. after all iterations, to perform two reduction operations:
-1. A reduction operation to compute the cell with the maximum number of particles
-  (and compute the value of the maximum number of particles)
+simulation i.e. after all iterations, to contribute to the custom reduction operation (as specified in the global
+reduction function calculateMaxMin). calculateMaxMin is the custom reduction function that gets reduction msgs
+from the contributors and needs to perform the reduction operation on the received data. Finally, on completion
+of the reduction operation, the callback pointing to Main::receiveMinMaxReductionData will be invoked with the
+final reduction data.
 
-2. A reduction operation to compute the cell with the minimum number of particles
-  (and compute the value of the minimum number of particles)
+Your coding assignment bonus exercise is to
+1. Add code in Cell::contributeToReduction in the file src/exercise.cpp to declare the reduction data and
+   assign the declared data with the different values being reduced (min value, min x index, min y index,
+   max value, max x index and max y index). Following the data declaration, declare a callback to
+   Main::receiveMinMaxReductionData and call contribute passing the size, data, reduction type i.e minMaxType
+   and the declared callback. Note that the custom reduction type, 'minMaxType' has already been declared to use
+   calculateMaxMin.
+2. Add code in calculateMinMax to implement the reduction operations for the data being received.
+3. Add code in Main::receiveMinMaxReductionData to initialize the variables with the final reduction values.
+   These variables are maxParticles, maxCellX, maxCellY, minParticles, minCellX and minCellY. Note that,
+    Main::receiveMinMaxReductionData is called after the reduction operation is complete.
 
-
-Your assignment is to add code into Cell::contributeToReduction in the file src/exercise.cpp to add two
-contribute calls for performing charm++ reductions, one for a reduction to determine the maximum value
-and another to determine the minimum value.
-
-
-
-
-
-
+=======================================================
+References
+=======================================================
+Charm++ Manual: https://charm.readthedocs.io/en/latest/index.html
+Custom Reduction: https://charm.readthedocs.io/en/latest/charm++/manual.html#defining-a-new-reduction-type
+Projections Manual: https://charm.readthedocs.io/en/latest/projections/manual.html
+LiveViz: https://charm.readthedocs.io/en/latest/libraries/manual.html#liveviz-library
