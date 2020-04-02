@@ -30,5 +30,5 @@ cp ./scripts/evaluateOutput.sh $folderName/scripts
 cp -r ./scripts/compareOutput $folderName/scripts/
 rm -rf $folderName/src/solution.cpp                                 #Remove solution.cpp
 
-tar -czvf $folderName.tar.gz ./$folderName
+tar -czvf $folderName.tar.gz --exclude .git --exclude "*.log" ./$folderName
 rm -rf ./$folderName
