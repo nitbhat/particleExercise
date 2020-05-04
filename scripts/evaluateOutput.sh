@@ -10,7 +10,7 @@
 inputTar=$1
 
 if [[ -z "$inputTar" ]]; then
-  echo "Tar file value not passed in the first parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type>";
+  echo "Tar file value not passed in the first parameter! Usage: ./evaluateOutput.sh <path-to-tar-file>";
   exit 1
 fi
 
@@ -20,12 +20,7 @@ if [[ ! -f "$inputTar" ]]; then
   exit 1
 fi
 
-simType=$2
-
-if [[ -z "$simType" ]]; then
-  echo "Input type not passed in the second parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type> <base-directory>";
-  exit 1
-fi
+simType="simple"
 
 if [[ "$simType" != "simple" && "$simType" != "bench" ]]; then
   echo "Input type should be either \"simple\" (make test output) or \"bench\" (make test-bench output)";
