@@ -10,7 +10,7 @@
 inputTar=$1
 
 if [[ -z "$inputTar" ]]; then
-  echo "Tar file value not passed in the first parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type> <base-directory>";
+  echo "Tar file value not passed in the first parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type>";
   exit 1
 fi
 
@@ -32,13 +32,8 @@ if [[ "$simType" != "simple" && "$simType" != "bench" ]]; then
   exit 1
 fi
 
-baseDir=$3
-
-if [[ -z "$baseDir" ]]; then
-  echo "Base directory not passed in the third parameter! Usage: ./evaluateOutput.sh <path-to-tar-file> <input-type> <base-directory>";
-  exit 1
-fi
-
+myPath="$( cd "$(dirname "$0")" >/dev/null 2>&1; pwd -P )"
+baseDir="$(dirname ${myPath})"
 if [[ ! -d "$baseDir" ]]; then
   echo "Base directory $baseDir does not exist!"
   exit 1
@@ -56,13 +51,22 @@ if [ ! -d "$compareDir" ]; then
   exit 1
 fi
 
-tar -xvf $inputTar -C $resultDir
-inputDir=`ls -tdu -- $resultDir/* | head -n 1`
+resultDirContents=`ls -ltr -- $resultDir`
+if [[ ! -z "$resultDirContents" ]]; then
+  echo "Info: $resultDir is not empty, running \"rm -rf $resultDir*\" to empty it";
+  rm -rf $resultDir/*
+fi
 
-#echo "DEBUG: Compare dir is $compareDir"
-#echo "DEBUG: Result dir is $resultDir"
-#echo "DEBUG: Input tar is $inputTar"
-#echo "DEBUG: Input dir is $inputDir"
+tar -xvf $inputTar -C $resultDir
+
+simMainOutput="$(find $resultDir -name 'sim_output_main' | sort -r | head -n 1)"
+inputDir="$(dirname ${simMainOutput})"
+#inputDir=`ls -tdu -- $resultDir/* | head -n 1`
+
+echo "Info: Compare dir is $compareDir"
+echo "Info: Result dir is $resultDir"
+echo "Info: Input tar is $inputTar"
+echo "Info: Input dir is $inputDir"
 
 declare -a compareOutput
 declare -a compareInput
@@ -196,3 +200,6 @@ echo "==========================================================================
 #Reset back files
 mv ./sim_output_main_compare $compareDir/sim_output_main
 mv ./sim_output_main_input $inputDir/sim_output_main
+
+#delete files in $resultDir
+rm -rf $resultDir/*
