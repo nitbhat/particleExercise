@@ -3,11 +3,8 @@
 # Script creates a tar file folderName.tar.gz which will be passed on to the students
 #=====================================================================================
 
-baseDir=$1
-if [[ -z "$baseDir" ]]; then
-  echo "Base directory not passed in the first parameter! Usage: ./createExerciseTar.sh <base-directory> <name-of-tar-file>";
-  exit 1
-fi
+myPath="$( cd "$(dirname "$0")" >/dev/null 2>&1; pwd -P )"
+baseDir="$(dirname ${myPath})"
 
 if [[ ! -d "$baseDir" ]]; then
   echo "Base directory $baseDir does not exist!"
@@ -25,10 +22,11 @@ cp ./README ./$folderName
 cp ./Makefile ./$folderName
 cp -r ./img ./$folderName
 cp -r ./src ./$folderName
-mkdir $folderName/obj $folderName/output $folderName/scripts
+mkdir $folderName/obj $folderName/output $folderName/scripts $folderName/scripts/resultDir
 cp ./scripts/evaluateOutput.sh $folderName/scripts
 cp -r ./scripts/compareOutput $folderName/scripts/
 rm -rf $folderName/src/solution.cpp                                 #Remove solution.cpp
 
 tar -czvf $folderName.tar.gz --exclude .git --exclude "*.log" ./$folderName
 rm -rf ./$folderName
+echo "Created tar file $folderName.tar.gz successfully in $baseDir"
