@@ -24,9 +24,16 @@ class Cell: public CBase_Cell {
 
   public:
     int iteration, numReceived, numParticles, data[3];
+
+    // vector of my particles
     vector<Particle> particles;
 
+    // startX is my cell's starting X coordinate
+    // endX is my cell's ending X coordinate
     double startX, endX;
+
+    // startY is my cell's starting Y coordinate
+    // endY is my cell's ending Y coordinate
     double startY, endY;
 
     int numOutbound;

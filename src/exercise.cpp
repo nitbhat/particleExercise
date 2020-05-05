@@ -29,12 +29,19 @@ using namespace std;
 //change the position of the particles and send messages to neighbors with their incoming particles
 void Cell::updateParticles(int iter) {
 
+  // Variables to use
+  // 1. vector<Particle> particles (declared in cell.h)
+  // 2. startX, endX (declared in cell.h). Example - The cell (2,3) will have startX = 2.0 and endX= 3.0
+  // 3. startY, endY (declared in cell.h). Example - The cell (2,3) will have startY = 3.0 and endY = 4.0
+  // 4. thisIndex.x represents my cell's x index (declared in the charm++ runtime system). Example - The cell (2,3) will have thisIndex.x as 2
+  // 5. thisIndex.y represents my cell's y index (declared in the charm++ runtime system). Example - The cell (2,3) will have thisIndex.y as 3
+
   //TODO: Add code for the following
   // 1. Iterate through the particles and call perturb(...) passing each particle. This causes the particle's x and y coordinate to change
   // 2. Identify the new cell that the particle belongs to and construct a vector of particles to be sent to each of the 8 neighbors (topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight)
   // 3. Make sure that particles that go outside the bounding box are wrapped back i.e for a 2D box consisting of 8 cells in each dimension,
   //    if a particle with the index (7,7) goes to (7, 8), it should be sent back to (7, 0).
-  // 3. Call sendParticles(...) to send the 8 different vector of particles to each of the 8 neighbours
+  // 4. Call sendParticles(...) to send the 8 different vector of particles to each of the 8 neighbours
 
 }
 
