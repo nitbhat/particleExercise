@@ -20,7 +20,7 @@ if [[ ! -f "$inputTar" ]]; then
   exit 1
 fi
 
-simType="simple"
+simType="bench"
 
 if [[ "$simType" != "simple" && "$simType" != "bench" ]]; then
   echo "Input type should be either \"simple\" (make test output) or \"bench\" (make test-bench output)";

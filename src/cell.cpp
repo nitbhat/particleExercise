@@ -200,6 +200,33 @@ void Cell::reduceTotalAndMax() {
   contribute(3*sizeof(int), data, totalOutboundType, cbTotalAndOutbound);
 }
 
+void Cell::contributeParticles(int particleContributionType) {
+
+  if(particleContributionType == 0) {
+    CkCallback cb(CkIndex_Main::getAllParticles(0), mainProxy);
+    contribute(sizeof(Particle)*particles.size(), (&particles[0]), CkReduction::concat, cb);
+
+  } else if(particleContributionType == 1) {
+
+    string compareFolder;
+    if(numCellsPerDim == 4)
+      compareFolder = "scripts/compareOutput/simple";
+    else if(numCellsPerDim == 35)
+      compareFolder = "scripts/compareOutput/bench";
+    else
+      CkAbort("Cell::contributeParticles - no comparsion directory for this input of numCellsPerDim");
+
+    string compareFile = compareFolder + "/sim_output_" + to_string(thisIndex.x) + "_" + to_string(thisIndex.y);
+
+    //CkPrintf("Relative path to output is %s\n", parentFolder.c_str());
+    ifstream inFile(compareFile);
+
+
+  } else {
+    CkAbort("Cell::contributeParticles - Invalid value of particleContributionType\n");
+  }
+}
+
 void Cell::sortAndDump(string subFolderName) {
   sort(particles.begin(), particles.end());
 

@@ -25,6 +25,11 @@ class Main: public CBase_Main {
   bool outputPrompt;
   string finalPath;
 
+  int particleContributionType;
+
+  CkReductionMsg *simulationParticlesMsg;
+  CkReductionMsg *verifiedSimulationParticlesMsg;
+
   public:
     Main(CkArgMsg* m);
 
@@ -36,6 +41,9 @@ class Main: public CBase_Main {
     void readyToOutput();
     bool getUserInput();
     string getDefaultSubdirectoryName();
+
+    void getAllParticles(CkReductionMsg *msg);
+    void verifyOutput();
 
 #if BONUS_QUESTION
     void computeMin(int min);

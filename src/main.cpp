@@ -77,6 +77,8 @@ Main::Main(CkArgMsg* m) {
 
   reductionFreq = 5;
 
+  particleContributionType = 0;
+
   CkPrintf("================================ Input Params ===============================\n");
   CkPrintf("====================== Particles In A Box Simulation ========================\n");
   CkPrintf("Grid Size                                                  = %d X %d\n", numCellsPerDim, numCellsPerDim);
@@ -222,8 +224,58 @@ void Main::readyToOutput() {
 
   myFile.close();
 
+  
   // Make each chare write to a file
-  cellProxy.sortAndDump(finalPath);
+  //cellProxy.sortAndDump(finalPath);
+  particleContributionType = 0;
+  
+  // first get the simulation particles
+  cellProxy.contributeParticles(particleContributionType);
+}
+
+void Main::getAllParticles(CkReductionMsg *msg) {
+
+  int numParticles = msg->getSize()/sizeof(Particle);
+  CkPrintf("====Reduction complete from all chares and there are %d particles====\n", numParticles);
+
+  //for(int i=0; i<numParticles; i++) {
+  //  Particle *p = ((Particle *)(msg->getData()) + i);
+  //  CkPrintf("Particle [%d], Color:%c, Coordinates (%lf, %lf)\n", p->gid, p->color, p->x, p->y);
+  //}
+
+  sort((Particle *)msg->getData(), (Particle *)((char *)msg->getData() + msg->getSize()));
+
+  CkPrintf("==== After sorting ============");
+
+  //for(int i=0; i<numParticles; i++) {
+  //  Particle *p = ((Particle *)(msg->getData()) + i);
+  //  CkPrintf("Particle [%d], Color:%c, Coordinates (%lf, %lf)\n", p->gid, p->color, p->x, p->y);
+  //}
+
+  if(particleContributionType == 0) {
+    simulationParticlesMsg = msg;
+    particleContributionType = 1;
+
+    cellProxy.contributeParticles(particleContributionType);
+
+  } else if(particleContributionType == 1) {
+
+    //verifiedSimulationParticlesMsg = msg;
+
+    //verifyOutput();
+
+  } else {
+    CkAbort("Main::getAllParticles - Invalid value of particleContributionType\n");
+  }
+}
+
+void Main::verifyOutput() {
+  int simulationParticleNum = simulationParticlesMsg->getSize()/sizeof(Particle);
+  int verifiedParticleNum = verifiedSimulationParticlesMsg->getSize()/sizeof(Particle);
+
+  CkAssert(simulationParticleNum == verifiedParticleNum);
+  CkPrintf("Exiting program\n");
+  CkExit();
 }
 
 void Main::done() {

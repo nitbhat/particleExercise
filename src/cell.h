@@ -57,6 +57,7 @@ class Cell: public CBase_Cell {
     void updateNeighbor(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     void sortAndDump(string subFolderName);
 
+    void contributeParticles(int particleContributionType);
 #if LIVEVIZ_RUN
     void mapChareToImage(liveVizRequestMsg *m);
 #endif
