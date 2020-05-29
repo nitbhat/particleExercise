@@ -6,10 +6,10 @@ Input:Particles Per Cell Seed:100
 Input:Number Of Iterations:100
 Input:Particle Ratio:1,2,3,10
 Input:Velocity Factor:5
-Output:Total Time:0.196257
-Output:Time Per Step:0.00196257
-Output:Max Particles:-1
-Output:Cell with Max Particles:(-1,-1)
-Output:Min Particles:-1
-Output:Cell with Min Particles:(-1,-1)
+Output:Total Time:0.191266
+Output:Time Per Step:0.00191266
+Output:Max Particles:595
+Output:Cell with Max Particles:(3,3)
+Output:Min Particles:42
+Output:Cell with Min Particles:(3,1)
 ====================================== END ==========================================
