@@ -17,6 +17,7 @@
 /*readonly*/ double cellDim;
 /*readonly*/ int velocityFactor;
 /*readonly*/ vector<int> particleRatio;
+/*readonly*/ bool logOutput;
 
 #if LIVEVIZ_RUN
 /*readonly*/ double pixelScale;
@@ -35,7 +36,7 @@ Main::Main(CkArgMsg* m) {
   iterations = atoi(m->argv[3]);
   string particleRatioStr(m->argv[4]);
   velocityFactor = atoi(m->argv[5]);
-  string outputPromptString(m->argv[6]);
+  string logOutputString(m->argv[6]);
   lbFreq = atoi(m->argv[7]);
   delete m;
 
@@ -51,12 +52,12 @@ Main::Main(CkArgMsg* m) {
   if(particleRatio.size() != 4)
     CkAbort("Particle ratio input incorrect! Pass particle ratio input as a comma seprated string <upper, lower, diag, box>");
 
-  if (outputPromptString == "yes") {
-    outputPrompt = true;
-  } else if(outputPromptString == "no") {
-    outputPrompt = false;
+  if (logOutputString == "yes") {
+    logOutput = true;
+  } else if(logOutputString == "no") {
+    logOutput = false;
   } else {
-    CkAbort("output-prompt incorrect! Pass either \"yes\" or \"no\"");
+    CkAbort("log-output incorrect! Pass either \"yes\" or \"no\"");
   }
 
   // Each cell has 1.0 * 1.0 dimensions and hence the total box dimensions will be 0.0 and 1.0 * numCellsPerDim
@@ -77,6 +78,8 @@ Main::Main(CkArgMsg* m) {
 
   reductionFreq = 5;
 
+  totalParticles = -1;
+
   CkPrintf("================================ Input Params ===============================\n");
   CkPrintf("====================== Particles In A Box Simulation ========================\n");
   CkPrintf("Grid Size                                                  = %d X %d\n", numCellsPerDim, numCellsPerDim);
@@ -87,7 +90,7 @@ Main::Main(CkArgMsg* m) {
   CkPrintf("Red Particles   (Diagonal) distribution ratio              = %d\n", particleRatio[2]);
   CkPrintf("Red Particles   (Central Box) distribution ratio           = %d\n", particleRatio[3]);
   CkPrintf("Velocity Reduction Factor                                  = %d\n", velocityFactor);
-  CkPrintf("Output Prompt                                              = %d\n", outputPrompt);
+  CkPrintf("Log Output                                                 = %d\n", logOutput);
   CkPrintf("Load Balancing Frequency                                   = %d\n", lbFreq);
   CkPrintf("=============================================================================\n");
   CkPrintf("======================= Launching Particle Simulation =======================\n");
@@ -117,9 +120,13 @@ void Main::receiveTotalOutboundReductionData(CkReductionMsg *data){
   printTotal(output[0], output[1], output[2]);
   if(output[2] == iterations) {
     endTime = CkWallTimer();
+
+    totalParticles = output[0];
+
     totalTime = (endTime - startTime);
     CkPrintf("======================= Particle Simulation Complete ========================\n");
     CkPrintf("Simulation Complete, total time taken is %lf seconds\n", totalTime);
+    CkPrintf("=============================================================================\n");
 #if BONUS_QUESTION
     // Broadcast everyone to contribute to bonus question reduction
     cellProxy.contributeToReduction();
@@ -170,16 +177,7 @@ void Main::readyToOutput() {
   }
 
   char userRunOutputFolder[80];
-  bool logFinal = true;
   string folderName;
-
-  if(outputPrompt) {
-    logFinal = getUserInput();
-    if(logFinal == false) {
-      CkPrintf("Not writing output to files, Exiting program\n");
-      CkExit(); // Program ends
-    }
-  }
 
   folderName = getDefaultSubdirectoryName();
 
@@ -222,12 +220,18 @@ void Main::readyToOutput() {
 
   myFile.close();
 
-  // Make each chare write to a file
-  cellProxy.sortAndDump(finalPath);
+  // Ask every cell to send the particles to the right home based on the global index
+  cellProxy.reorganizeParticles(totalParticles, finalPath);
 }
 
 void Main::done() {
-  CkPrintf("All output has been written to files in directory : %s\n", finalPath.c_str());
+  CkPrintf("=============================================================================\n");
+  CkPrintf("Success! Simulation correctness verified across all cells\n");
+  CkPrintf("=============================================================================\n");
+  CkPrintf("Final summarized output has been written to: %s/sim_output_main\n", finalPath.c_str());
+  if(logOutput) {
+    CkPrintf("All particle output has been written to files in directory : %s\n", finalPath.c_str());
+  }
   CkPrintf("Exiting program\n");
   CkExit();
 }

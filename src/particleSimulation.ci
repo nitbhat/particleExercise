@@ -13,7 +13,7 @@ mainmodule particleSimulation {
   readonly double cellDim;
   readonly int velocityFactor;
   readonly vector<int> particleRatio;
-
+  readonly bool logOutput;
 
 #if LIVEVIZ_RUN
   readonly double pixelScale;
@@ -70,6 +70,8 @@ mainmodule particleSimulation {
     entry void receiveUpdate(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     entry void ResumeFromSync();
     entry void sortAndDump(string subFolderName);
+    entry void reorganizeParticles(int totalParticles, string subFolderName);
+    entry void recvParticlesPostSimulation(vector<Particle> inbound);
 
 #if BONUS_QUESTION
     entry void contributeToReduction();

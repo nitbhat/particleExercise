@@ -56,6 +56,10 @@ class Cell: public CBase_Cell {
     void updateParticles(int iter);
     void updateNeighbor(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     void sortAndDump(string subFolderName);
+    void reorganizeParticles(int totalParticles, string subFolderName);
+    void recvParticlesPostSimulation(vector<Particle> inbound);
+
+    void verifyCorrectness();
 
 #if LIVEVIZ_RUN
     void mapChareToImage(liveVizRequestMsg *m);
@@ -77,6 +81,8 @@ class Cell: public CBase_Cell {
       thisProxy(xIndex, yIndex).receiveUpdate(iteration, outgoing, thisIndex.x, thisIndex.y);
     }
 
+    void sendParticlesPostSimulation(int linearCellId, vector<Particle> &outbound);
+
     void checkParticleBelongsToMe(Particle &p) {
         // Error checking
         if(p.x < startX || p.x > endX)
@@ -86,10 +92,24 @@ class Cell: public CBase_Cell {
           CmiAbort("[%d][%d] Particle Y coordinate %lf doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, p.y, startY, endY);
     }
 
+    int totalParticles;
+    int myShare;
+    int ppcEqualDist;
+    // vector of my particles after reorganization
+    vector<Particle> reorgParticles;
+
+    // vector of particles read in from pre-computed output file
+    // These particles are compared against simulation particles to verify correctness
+    vector<Particle> precomputeParticles;
+
+    string outputFolderName;
+
+    void computeTotalParticles();
+
     int computeParticlesInCell(int cellX, int cellY);
     int computeParticlesInCell();
     int getParticleStartId();
-
+    void readComparisonOutputFromFiles();
 };
 
 #endif

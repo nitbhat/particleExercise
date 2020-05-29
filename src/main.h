@@ -22,7 +22,7 @@ class Main: public CBase_Main {
   int minCellX, minCellY;
   int maxCellX, maxCellY;
 
-  bool outputPrompt;
+  int totalParticles;
   string finalPath;
 
   public:

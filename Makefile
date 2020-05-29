@@ -1,6 +1,6 @@
 CHARM_HOME=/Users/nitinbhat/Work/software/charm/netlrts-darwin-x86_64-prod
 CHARMC=${CHARM_HOME}/bin/charmc $(OPTS)
-MODE=exercise
+MODE=solution
 
 BONUS_QUESTION=0# Set to 1 to compile bonus question part
 # make clean all after changing BONUS_QUESTION variable
@@ -36,7 +36,7 @@ ITER = 100
 LBFREQ = 5
 PARTICLEDIST = 1,2,3,10
 VELFACT = 5
-OUTPUTPROMPT=no
+LOGOUTPUT=yes
 
 obj/cifiles: src/particleSimulation.ci
 	$(CHARMC) src/particleSimulation.ci
@@ -69,10 +69,10 @@ cleanp:
 	rm -f *.sts *.gz *.projrc *.topo *.out
 
 test: all
-	./charmrun +p4 ./particle $(N) $(K) $(ITER) $(PARTICLEDIST) $(VELFACT) $(OUTPUTPROMPT) $(LBFREQ) $(TESTOPTS)
+	./charmrun +p4 ./particle $(N) $(K) $(ITER) $(PARTICLEDIST) $(VELFACT) $(LOGOUTPUT) $(LBFREQ) $(TESTOPTS)
 
 testbench: all
-	./charmrun +p128 ./particle 10000 35 1000 1,2,30,10 5 yes $(LBFREQ) $(TESTOPTS)
+	./charmrun +p128 ./particle 10000 35 1000 1,2,30,10 5 no $(LBFREQ) $(TESTOPTS)
 
 testviz: all
-	./charmrun +p4 ./particle 10000 10 100000 $(PARTICLEDIST) 100 $(OUTPUTPROMPT) $(LBFREQ) ++server ++server-port 1234 $(TESTOPTS)
+	./charmrun +p4 ./particle 10000 10 100000 $(PARTICLEDIST) 100 no $(LBFREQ) ++server ++server-port 1234 $(TESTOPTS)

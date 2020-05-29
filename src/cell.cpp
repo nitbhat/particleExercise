@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <regex>
 #define DEBUG(x) //x
 
 extern CProxy_Main mainProxy;
@@ -13,6 +14,7 @@ extern double boxMin;
 extern double cellDim;
 extern int velocityFactor;
 extern vector<int> particleRatio;
+extern bool logOutput;
 
 
 #if LIVEVIZ_RUN
@@ -38,8 +40,18 @@ Cell::Cell() {
   DEBUG(CmiPrintf("[%d][%d] ============================= Populating Cell=======\n", thisIndex.x, thisIndex.y);)
   populateCell(particlesPerCell); //creates random particles within the cell
   DEBUG(CmiPrintf("[%d][%d] ============================= Done Populating Cell=======\n", thisIndex.x, thisIndex.y);)
-}
 
+  computeTotalParticles();
+
+  // Code used for reorganization of particles after simulation
+  ppcEqualDist = totalParticles/(numCellsPerDim * numCellsPerDim);
+  // All cells except the last cell will have ppcEqualDist particles as their share
+  if(thisIndex.x == (numCellsPerDim - 1) &&  thisIndex.y == (numCellsPerDim - 1)) {
+    myShare = totalParticles - ppcEqualDist*(numCellsPerDim*numCellsPerDim - 1);
+  } else {
+    myShare = ppcEqualDist;
+  }
+}
 
 // Other particle methods
 void Cell::populateCell(int initialElements) {
@@ -200,8 +212,153 @@ void Cell::reduceTotalAndMax() {
   contribute(3*sizeof(int), data, totalOutboundType, cbTotalAndOutbound);
 }
 
-void Cell::sortAndDump(string subFolderName) {
+void Cell::computeTotalParticles() {
+  totalParticles = 0;
+  for(int j=0; j < numCellsPerDim; j++) { // iterate over columns
+    for(int i=0; i < numCellsPerDim; i++) { // iterate over rows
+      totalParticles += computeParticlesInCell(i, j);
+    }
+  }
+  DEBUG(CmiPrintf("[%d][%d] Total Particles are %d\n", thisIndex.x, thisIndex.y, totalParticles);)
+}
+
+void Cell::recvParticlesPostSimulation(vector<Particle> inbound) {
+
+  if(reorgParticles.size() == 0) {
+    reorgParticles.reserve(myShare);
+  }
+
+  reorgParticles.insert(reorgParticles.end(), inbound.begin(), inbound.end());
+
+  if(reorgParticles.size() == myShare) {
+
+    if(logOutput) {
+      sortAndDump(outputFolderName);
+    }
+
+    verifyCorrectness();
+
+  } else if(reorgParticles.size() > myShare) {
+    CkAbort("[%d][%d] I currently have %lu particles, which is more than my share of %d particles\n", thisIndex.x, thisIndex.y, reorgParticles.size(), myShare);
+  }
+}
+
+void Cell::readComparisonOutputFromFiles() {
+  // Read precomputed particles for comparison
+  string comparisonFile = "scripts/compareOutput";
+
+  if(numCellsPerDim == 4) {
+    comparisonFile += "/simple/";
+  } else if(numCellsPerDim == 35) {
+    comparisonFile += "/bench/";
+  } else {
+    CkPrintf("No comparison data available currently!\n");
+  }
+
+  comparisonFile += "sim_output_" + to_string(thisIndex.x) + "_" + to_string(thisIndex.y);
+
+  DEBUG(CkPrintf("[%d][%d] Comparison file is %s\n", thisIndex.x, thisIndex.y, comparisonFile.c_str());)
+
+  ifstream infile(comparisonFile);
+  string line, token;
+  Particle p;
+
+  regex particleLine("(Particle)(.*)");
+  precomputeParticles.reserve(myShare);
+
+  while(getline(infile, line)) {
+
+    if(regex_match(line, particleLine)) {
+
+      istringstream iss1(line);
+      getline(iss1, token, ':'); // discard 'Particle' text
+      getline(iss1, token, ':');
+
+      istringstream iss2(token);
+
+      getline(iss2, token, ',');
+      p.gid = stoi(token);
+
+      getline(iss2, token, ',');
+      p.x = stod(token);
+
+      getline(iss2, token, ',');
+      p.y = stod(token);
+
+      getline(iss2, token, ',');
+      p.color = token[0];
+
+      precomputeParticles.push_back(p);
+    }
+  }
+}
+
+void Cell::verifyCorrectness() {
+
+  // locally sort received reorg particles before comparison
+  sort(reorgParticles.begin(), reorgParticles.end());
+
+  readComparisonOutputFromFiles();
+
+  // Verify correctness
+  // Assert that number of particles is the same
+  assert(precomputeParticles.size() == reorgParticles.size());
+
+  for(int i=0; i < precomputeParticles.size(); i++) {
+    assert(precomputeParticles[i].gid == reorgParticles[i].gid);
+    assert(fabs(precomputeParticles[i].x - reorgParticles[i].x) < 1e-12);
+    assert(fabs(precomputeParticles[i].y - reorgParticles[i].y) < 1e-12);
+    assert(precomputeParticles[i].color == reorgParticles[i].color);
+  }
+
+  DEBUG(CkPrintf("[%d][%d] Correctness verified\n", thisIndex.x, thisIndex.y);)
+  CkCallback doneCb(CkIndex_Main::done(), mainProxy);
+  contribute(doneCb);
+}
+
+void Cell::sendParticlesPostSimulation(int linearCellId, vector<Particle> &outbound) {
+  assert(linearCellId >= 0 && linearCellId < (numCellsPerDim * numCellsPerDim));
+
+  int xCellId = linearCellId / numCellsPerDim;
+  int yCellId = linearCellId % numCellsPerDim;
+  thisProxy(xCellId, yCellId).recvParticlesPostSimulation(outbound);
+}
+
+void Cell::reorganizeParticles(int totalParticles, string subFolderName) {
   sort(particles.begin(), particles.end());
+  outputFolderName = subFolderName;
+
+  DEBUG(CkPrintf("[%d][%d] My share is %d\n", thisIndex.x, thisIndex.y, myShare);)
+
+  int linearCellId = -1, prevLinearCellId = -1;
+  vector<Particle> outbound;
+
+  for(int i=0 ; i<particles.size(); i++) {
+
+    linearCellId = (particles[i].gid - 1)/ppcEqualDist;
+
+    if(linearCellId == numCellsPerDim * numCellsPerDim)
+      linearCellId = linearCellId - 1;
+
+    if(prevLinearCellId != linearCellId && prevLinearCellId != -1) {
+      // Send the outbound particles
+      sendParticlesPostSimulation(prevLinearCellId, outbound);
+      outbound.clear();
+    }
+
+    outbound.push_back(particles[i]);
+    prevLinearCellId = linearCellId;
+  }
+
+  // Send the last set of outbound particles
+  if(outbound.size() != 0)
+    sendParticlesPostSimulation(prevLinearCellId, outbound);
+}
+
+void Cell::sortAndDump(string subFolderName) {
+
+  // sort particles before writing into files
+  sort(reorgParticles.begin(), reorgParticles.end());
 
   // Create a file
   ofstream myFile;
@@ -213,10 +370,10 @@ void Cell::sortAndDump(string subFolderName) {
     myFile << "====================================== BEGIN ==========================================" << endl;
     myFile << "Cell:"<<thisIndex.x <<","<< thisIndex.y<< endl;
     myFile << "=======================================================================================" << endl;
-    for(int i=0; i<particles.size(); i++) {
-      checkParticleBelongsToMe(particles[i]);
-      DEBUG(CmiPrintf("[%d][%d] Final particle Sorted gid=%d => x=%lf, y=%lf, color=%c\n", thisIndex.x, thisIndex.y, particles[i].gid, particles[i].x, particles[i].y, particles[i].color);)
-      myFile << "Particle:"<< particles[i].gid <<","<<particles[i].x << "," << particles[i].y << "," << particles[i].color << endl;
+
+    for(int i=0; i<reorgParticles.size(); i++) {
+      DEBUG(CmiPrintf("[%d][%d] Final particle Sorted gid=%d => x=%lf, y=%lf, color=%c\n", thisIndex.x, thisIndex.y, reorgParticles[i].gid, reorgParticles[i].x, reorgParticles[i].y, reorgParticles[i].color);)
+      myFile << "Particle:"<< reorgParticles[i].gid << fixed << setprecision(15) << ","<< reorgParticles[i].x << "," << reorgParticles[i].y << "," << reorgParticles[i].color << endl;
     }
     myFile << "====================================== END ==========================================" << endl;
   } else {
@@ -224,8 +381,8 @@ void Cell::sortAndDump(string subFolderName) {
   }
   myFile.close();
 
-  CkCallback doneCb(CkIndex_Main::done(), mainProxy);
-  contribute(doneCb);
+  //CkCallback doneCb(CkIndex_Main::done(), mainProxy);
+  //contribute(doneCb);
 }
 
 #if LIVEVIZ_RUN
