@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <regex>
+#include <iomanip> //for set precision
 #define DEBUG(x) //x
 
 extern CProxy_Main mainProxy;
