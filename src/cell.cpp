@@ -309,6 +309,10 @@ void Cell::verifyCorrectness() {
     assert(precomputeParticles[i].gid == reorgParticles[i].gid);
     assert(fabs(precomputeParticles[i].x - reorgParticles[i].x) < 1e-12);
     assert(fabs(precomputeParticles[i].y - reorgParticles[i].y) < 1e-12);
+
+    if(fabs(precomputeParticles[i].y - reorgParticles[i].y) > 1e-12) {
+      CkPrintf("[%d][%d] y coordinate difference greater than 1e-12 precompute y is %.*lf and reorg y is %.*lf gid is (%d, %d)\n", thisIndex.x, thisIndex.y, 14, precomputeParticles[i].y, 14, reorgParticles[i].y, precomputeParticles[i].gid, reorgParticles[i].gid);
+    }
     assert(precomputeParticles[i].color == reorgParticles[i].color);
   }
 
