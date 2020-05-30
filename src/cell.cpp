@@ -239,6 +239,11 @@ void Cell::recvParticlesPostSimulation(vector<Particle> inbound) {
 
     verifyCorrectness();
 
+    // reduce to Main::done() 
+    CkCallback doneCb(CkIndex_Main::done(), mainProxy);
+    contribute(doneCb);
+
+
   } else if(reorgParticles.size() > myShare) {
     CkAbort("[%d][%d] I currently have %lu particles, which is more than my share of %d particles\n", thisIndex.x, thisIndex.y, reorgParticles.size(), myShare);
   }
@@ -307,18 +312,16 @@ void Cell::verifyCorrectness() {
 
   for(int i=0; i < precomputeParticles.size(); i++) {
     assert(precomputeParticles[i].gid == reorgParticles[i].gid);
-    assert(fabs(precomputeParticles[i].x - reorgParticles[i].x) < 1e-12);
-    assert(fabs(precomputeParticles[i].y - reorgParticles[i].y) < 1e-12);
+    assert(fabs(precomputeParticles[i].x - reorgParticles[i].x) < 1e-8);
+    assert(fabs(precomputeParticles[i].y - reorgParticles[i].y) < 1e-8);
 
-    if(fabs(precomputeParticles[i].y - reorgParticles[i].y) > 1e-12) {
-      CkPrintf("[%d][%d] y coordinate difference greater than 1e-12 precompute y is %.*lf and reorg y is %.*lf gid is (%d, %d)\n", thisIndex.x, thisIndex.y, 14, precomputeParticles[i].y, 14, reorgParticles[i].y, precomputeParticles[i].gid, reorgParticles[i].gid);
+    if(fabs(precomputeParticles[i].y - reorgParticles[i].y) > 1e-10) {
+      CkPrintf("[%d][%d] y coordinate difference greater than 1e-10 precompute y is %.*lf and reorg y is %.*lf gid is (%d, %d)\n", thisIndex.x, thisIndex.y, 14, precomputeParticles[i].y, 14, reorgParticles[i].y, precomputeParticles[i].gid, reorgParticles[i].gid);
     }
     assert(precomputeParticles[i].color == reorgParticles[i].color);
   }
 
   DEBUG(CkPrintf("[%d][%d] Correctness verified\n", thisIndex.x, thisIndex.y);)
-  CkCallback doneCb(CkIndex_Main::done(), mainProxy);
-  contribute(doneCb);
 }
 
 void Cell::sendParticlesPostSimulation(int linearCellId, vector<Particle> &outbound) {
