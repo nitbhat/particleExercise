@@ -107,6 +107,7 @@ void Cell::perturb(Particle* particle) {
 
   //CmiPrintf("[%d][%d] deltax, deltay [%lf, %lf]\n", thisIndex.x, thisIndex.y, deltax, deltay);
 
+  checkParticleBelongsToMe(*particle);
   double deltax = cos(particle->y);
   double deltay = cos(particle->x);
   assert(deltax >= -1 && deltax <= 1);
@@ -239,7 +240,7 @@ void Cell::recvParticlesPostSimulation(vector<Particle> inbound) {
 
     verifyCorrectness();
 
-    // reduce to Main::done() 
+    // reduce to Main::done()
     CkCallback doneCb(CkIndex_Main::done(), mainProxy);
     contribute(doneCb);
 
