@@ -87,10 +87,10 @@ class Cell: public CBase_Cell {
 
     void checkParticleBelongsToMe(Particle &p) {
         // Error checking
-        if(p.x < startX - 1e-8 || p.x > endX + 1e-8)
+        if(p.x < startX - 1e-6 || p.x > endX + 1e-6)
           CmiAbort("[%d][%d] Particle X coordinate %lf doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, p.x, startX, endX);
 
-        else if(p.y < startY - 1e-8 || p.y > endY + 1e-8)
+        else if(p.y < startY - 1e-6 || p.y > endY + 1e-6)
           CmiAbort("[%d][%d] Particle Y coordinate %lf doesn't belong in [%lf, %lf]\n", thisIndex.x, thisIndex.y, p.y, startY, endY);
     }
 
