@@ -72,7 +72,7 @@ test: all
 	./charmrun +p4 ./particle $(N) $(K) $(ITER) $(PARTICLEDIST) $(VELFACT) $(LOGOUTPUT) $(LBFREQ) $(TESTOPTS)
 
 testbench: all
-	./charmrun +p128 ./particle 10000 35 1000 1,2,30,10 5 no $(LBFREQ) $(TESTOPTS)
+	./charmrun +p96 ./particle 10000 35 1000 1,2,30,10 5 no $(LBFREQ) $(TESTOPTS)
 
 testviz: all
 	./charmrun +p4 ./particle 10000 10 100000 $(PARTICLEDIST) 100 no $(LBFREQ) ++server ++server-port 1234 $(TESTOPTS)
