@@ -61,7 +61,7 @@ mainmodule particleSimulation {
 
           serial{
             if(iteration % reductionFreq == 0 || iteration == iterations) {
-              reduceTotalAndMax();
+              reduceTotalAndOutbound();
             }
           }
 

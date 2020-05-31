@@ -76,7 +76,7 @@ class Cell: public CBase_Cell {
     void perturb(Particle* particle);
     void addParticlesOfColor(int num, char c, int &startId);
 
-    void reduceTotalAndMax();
+    void reduceTotalAndOutbound();
 
     void sendParticles(int xIndex, int yIndex, int iteration,  std::vector<Particle> &outgoing) {
       numOutbound += outgoing.size();

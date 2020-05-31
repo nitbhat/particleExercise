@@ -204,7 +204,7 @@ int Cell::getParticleStartId() {
   return -1;
 }
 
-void Cell::reduceTotalAndMax() {
+void Cell::reduceTotalAndOutbound() {
   numParticles=particles.size();
   data[0]= numParticles;
   data[1]= numOutbound;
