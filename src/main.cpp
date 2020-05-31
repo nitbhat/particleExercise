@@ -220,8 +220,17 @@ void Main::readyToOutput() {
 
   myFile.close();
 
+#if LIVEVIZ_RUN
+  CkPrintf("Final summarized output has been written to: %s/sim_output_main\n", finalPath.c_str());
+  if(logOutput) {
+    CkPrintf("Particle output is ignored for liveviz runs\n");
+  }
+  CkPrintf("Exiting program\n");
+  CkExit();
+#else
   // Ask every cell to send the particles to the right home based on the global index
   cellProxy.reorganizeParticles(finalPath);
+#endif
 }
 
 void Main::done() {
