@@ -22,8 +22,8 @@ cp ./README ./$folderName
 cp ./Makefile ./$folderName
 cp -r ./img ./$folderName
 cp -r ./src ./$folderName
-mkdir $folderName/obj $folderName/output $folderName/scripts $folderName/scripts/resultDir
-cp ./scripts/evaluateOutput.sh $folderName/scripts
+mkdir $folderName/obj $folderName/output $folderName/scripts
+#cp ./scripts/evaluateOutput.sh $folderName/scripts
 cp -r ./scripts/compareOutput $folderName/scripts/
 rm -rf $folderName/src/solution.cpp                                 #Remove solution.cpp
 
