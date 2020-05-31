@@ -51,6 +51,8 @@ class Cell: public CBase_Cell {
       p | endX;
       p | endY;
       p | numOutbound;
+      p | myShare;
+      p | ppcEqualDist;
     }
 
     void updateParticles(int iter);
