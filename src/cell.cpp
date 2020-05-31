@@ -333,7 +333,7 @@ void Cell::sendParticlesPostSimulation(int linearCellId, vector<Particle> &outbo
   thisProxy(xCellId, yCellId).recvParticlesPostSimulation(outbound);
 }
 
-void Cell::reorganizeParticles(int totalParticles, string subFolderName) {
+void Cell::reorganizeParticles(string subFolderName) {
   sort(particles.begin(), particles.end());
   outputFolderName = subFolderName;
 

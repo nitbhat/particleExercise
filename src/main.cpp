@@ -221,7 +221,7 @@ void Main::readyToOutput() {
   myFile.close();
 
   // Ask every cell to send the particles to the right home based on the global index
-  cellProxy.reorganizeParticles(totalParticles, finalPath);
+  cellProxy.reorganizeParticles(finalPath);
 }
 
 void Main::done() {

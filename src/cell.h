@@ -56,7 +56,7 @@ class Cell: public CBase_Cell {
     void updateParticles(int iter);
     void updateNeighbor(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     void sortAndDump(string subFolderName);
-    void reorganizeParticles(int totalParticles, string subFolderName);
+    void reorganizeParticles(string subFolderName);
     void recvParticlesPostSimulation(vector<Particle> inbound);
 
     void verifyCorrectness();

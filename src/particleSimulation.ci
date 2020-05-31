@@ -74,7 +74,7 @@ mainmodule particleSimulation {
     entry void receiveUpdate(int iter, std::vector<Particle> incoming, int senderX, int senderY);
     entry void ResumeFromSync();
     entry void sortAndDump(string subFolderName);
-    entry void reorganizeParticles(int totalParticles, string subFolderName);
+    entry void reorganizeParticles(string subFolderName);
     entry void recvParticlesPostSimulation(vector<Particle> inbound);
 
 #if BONUS_QUESTION
