@@ -38,6 +38,10 @@ mainmodule particleSimulation {
 
     // Main computation
     entry void run() {
+
+      // NOTE: Do not add new variables in the body of this method
+      // Rather, declared them as data members in the Cell class
+
       for(iteration=1; iteration<=iterations; iteration++){
 
           serial{
