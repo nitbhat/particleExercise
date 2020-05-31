@@ -38,19 +38,19 @@ PARTICLEDIST = 1,2,3,10
 VELFACT = 5
 LOGOUTPUT=yes
 
-obj/cifiles: src/particleSimulation.ci
+obj/cifiles: src/particleSimulation.ci src/particle.h
 	$(CHARMC) src/particleSimulation.ci
 	mv particleSimulation.def.h src/particleSimulation.def.h
 	mv particleSimulation.decl.h src/particleSimulation.decl.h
 	touch obj/cifiles
 
-obj/main.o: src/main.cpp obj/cifiles src/main.h
+obj/main.o: src/main.cpp obj/cifiles src/main.h src/particle.h src/cell.h
 	$(CHARMC) -c src/main.cpp -o obj/main.o
 
-obj/cell.o: src/cell.cpp obj/cifiles src/cell.h
+obj/cell.o: src/cell.cpp obj/cifiles src/cell.h src/particle.h
 	$(CHARMC) -c src/cell.cpp -o obj/cell.o
 
-obj/$(MODE).o: src/$(MODE).cpp obj/cifiles
+obj/$(MODE).o: src/$(MODE).cpp obj/cifiles src/particle.h src/cell.h src/main.h
 	$(CHARMC) -c src/$(MODE).cpp -o obj/$(MODE).o
 
 obj/custom_rand_gen.o: src/custom_rand_gen.c src/custom_rand_gen.h
