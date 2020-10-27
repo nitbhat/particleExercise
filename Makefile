@@ -1,6 +1,6 @@
 CHARM_HOME=/Users/nitinbhat/Work/software/charm/netlrts-darwin-x86_64-prod
 CHARMC=${CHARM_HOME}/bin/charmc $(OPTS)
-MODE=exercise
+MODE=solution
 
 BONUS_QUESTION=0# Set to 1 to compile bonus question part
 # make clean all after changing BONUS_QUESTION variable
